@@ -1,4 +1,5 @@
-import mechanicalsoup as ms
+from bs4 import BeautifulSoup
+import requests
 from nameko.rpc import rpc
 from nameko.web.handlers import http
 import json
@@ -33,9 +34,9 @@ def _parse_date(sdate):
         3. "day(int) month(string) year(int) - day(int) month(string) year(int)"
 
     Returns:
-        [tuple(datetime, datetime)]: depending on string format we return start date 
-        which is the first tuple element and end date (second one). End date can be None 
-        which means we had only one date in string 
+        [tuple(datetime, datetime)]: depending on string format we return start date
+        which is the first tuple element and end date (second one). End date can be None
+        which means we had only one date in string
     """
 
     spl = re.sub(' +', ' ', sdate).strip().split(' ')
@@ -83,10 +84,11 @@ def _read_events_from_page(page):
         type = split[0]
         isPaid = split[1]
 
-        titleTag = event.find(
+        title_tag = event.find(
             "a", {"class": "event-list-item__title"})
-        title = titleTag.string.replace("\n", "")
-        meta_id = titleTag["href"].split('/')[-1]
+        title = title_tag.string.replace("\n", "")
+        meta_id = title_tag["href"].split('/')[-1]
+
         date = event.find(
             "div", {"class": "event-list-item__info"}).string.replace("\n", "")
         _location = event.find(
@@ -101,7 +103,14 @@ def _read_events_from_page(page):
 
         startDate, endDate = _parse_date(date)
 
-        # TODO: add reading description from event page
+        event_page_soup = BeautifulSoup(requests.get(
+            "https://it-events.com" + title_tag["href"]).text, "html.parser")
+
+        description_raw = event_page_soup.find(
+            "div", {"class": "col-md-8 user-generated"})
+
+        description = re.sub(' +', ' ', "".join(
+            description_raw.find_all(text=True, recursive=True))).strip()
 
         events.append(
             {
@@ -112,7 +121,7 @@ def _read_events_from_page(page):
                 "location": location,
                 "startDate": startDate.strftime("%d:%m:%Y"),
                 "endDate": endDate.strftime("%d:%m:%Y") if endDate is not None else None,
-                "description": "",
+                "description": description,
                 "meta": {
                     "https://it-events.com/": meta_id
                 }
@@ -131,24 +140,24 @@ def read_events():
     """
 
     # TODO: async request process
+    # we can try to use asyncio for this purpsoe
 
     events = []
 
     url = "https://it-events.com"
-    browser = ms.StatefulBrowser(user_agent='Mechanical_Soup')
-    browser.open(url)
-    page = browser.get_current_page()
+    content = requests.get(url)
+    soup = BeautifulSoup(content.text, "html.parser")
 
     while True:
-        events.append(_read_events_from_page(page))
+        events.append(_read_events_from_page(soup))
 
-        next = page.find("a", text="Следующая")
+        next = soup.find("a", text="Следующая")
 
         if next is None:
             break
         else:
-            browser.open(url + next["href"])
-            page = browser.get_current_page()
+            content = requests.get(url + next["href"])
+            soup = BeautifulSoup(content.text, "html.parser")
 
     return events
 

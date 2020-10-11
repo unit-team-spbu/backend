@@ -1,2 +1,2 @@
 nameko
-mechanicalsoup
+bs4
