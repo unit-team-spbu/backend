@@ -1,178 +1,219 @@
-from bs4 import BeautifulSoup
-import requests
-from nameko.rpc import rpc
 from nameko.web.handlers import http
+from nameko.rpc import rpc
+from bs4 import BeautifulSoup
+from typing import Tuple
+import requests
 import json
+import math
 import re
-from datetime import datetime
 
-_months_dict = {
-    'января': 1,
-    'февраля': 2,
-    'марта': 3,
-    'апреля': 4,
-    'мая': 5,
-    'июня': 6,
-    'июля': 7,
-    'августа': 8,
-    'сентября': 9,
-    'октября': 10,
-    'ноября': 11,
-    'декабря': 12}
+# TODO: find & impl reliable and centralized logging for crawler
 
 
-def _parse_date(sdate):
-    """Takes string dates from https://it-events.com/ and converts them to datetime objects
+class ITEventsCrawler:
+    # Vars
 
-    Args:
-        sdate (str): string that contains date or date range on one of the specified formats:
+    name = "it_events_crawler"
+    _URL = "https://it-events.com"
+    _MONTHS = {
+        'января': 1,
+        'февраля': 2,
+        'марта': 3,
+        'апреля': 4,
+        'мая': 5,
+        'июня': 6,
+        'июля': 7,
+        'августа': 8,
+        'сентября': 9,
+        'октября': 10,
+        'ноября': 11,
+        'декабря': 12}
 
-        1. "day(int) month(string) year(int)"
+    # Logic
 
-        2. "day(int) - day(int) month(string) year(int)"
+    def _parse_date(self, date: str) -> Tuple[str, str]:
+        """Converts date in it-events.com format our format dd/mm/YYYY
 
-        3. "day(int) month(string) year(int) - day(int) month(string) year(int)"
+        Args:
+            date (str): of one of the following formats
 
-    Returns:
-        [tuple(datetime, datetime)]: depending on string format we return start date
-        which is the first tuple element and end date (second one). End date can be None
-        which means we had only one date in string
-    """
+            1. day(int) month(str) year(int)
+            2. day(int) - day(int) month(str) year(str)
+            3. day(int) month(str) year(str) - day(int) month(str) year(str)
 
-    spl = re.sub(' +', ' ', sdate).strip().split(' ')
+        Returns:
+            Tuple[str, str]: start and end date pair. End date might be None (for 1st case)
+        """
+        spld = re.sub(' +', ' ', date).strip().split(' ')
 
-    if len(spl) == 3:
-        day = int(spl[0])
-        month = _months_dict[spl[1]]
-        year = int(spl[2])
+        if len(spld) == 3:
+            day = int(spld[0])
+            month = self._MONTHS[spld[1]]
+            year = int(spld[2])
 
-        return (datetime(year, month, day), None)
-    elif len(spl) == 5:
-        day_1 = int(spl[0])
-        day_2 = int(spl[2])
-        month = _months_dict[spl[3]]
-        year = int(spl[4])
+            return ("{}/{}/{}".format(day, month, year), None)
+        elif len(spld) == 5:
+            day_1 = int(spld[0])
+            day_2 = int(spld[2])
+            month = self._MONTHS[spld[3]]
+            year = int(spld[4])
 
-        return (datetime(year, month, day_1), datetime(year, month, day_2))
-    else:
-        day_1 = int(spl[0])
-        month_1 = _months_dict[spl[1]]
-        year_1 = int(spl[2])
-        day_2 = int(spl[4])
-        month_2 = _months_dict[spl[5]]
-        year_2 = int(spl[6])
+            return ("{}/{}/{}".format(day_1, month, year), "{}/{}/{}".format(day_2, month, year))
+        else:
+            day_1 = int(spld[0])
+            month_1 = self._MONTHS[spld[1]]
+            year_1 = int(spld[2])
+            day_2 = int(spld[4])
+            month_2 = self._MONTHS[spld[5]]
+            year_2 = int(spld[6])
 
-        return (datetime(year_1, month_1, day_1), datetime(year_2, month_2, day_2))
+            return ("{}/{}/{}".format(day_1, month_1, year_1), "{}/{}/{}".format(day_2, month_2, year_2))
 
+    def _parse_is_paid(self, soup: BeautifulSoup) -> bool:
+        """From page content finds out of event is paid or not
 
-def _read_events_from_page(page):
-    """Reads upcoming events from one specific page on https://it-events.com/
+        Args:
+            soup (BeautifulSoup): event page
 
-    Args:
-        page (BeautifulSoup): html page
+        Returns:
+            bool: event is paid?
+        """
+        return soup.find("div", {
+            "class": "event-header__line event-header__line_icon event-header__line_icon_price"}
+        ).text != "Участие бесплатное"
 
-    Returns:
-        [list]: list of events as dictionaries
-    """
-    events = []
+    def _parse_meta(self, soup: BeautifulSoup) -> dict:
+        """From page content finds out meta-information about event
 
-    for event in page.find_all("div", {"class": "event-list-item"}):
+        Args:
+            soup (BeautifulSoup): event page
 
-        _type = event.find("div", {"class": "event-list-item__type"})
-        split = _type.string.replace("\n", "").split(" / ")
+        Returns:
+            dict: pair of info source http address and event ID in the IS 
+        """
+        return {
+            self._URL: (soup.find("a", {"class": "header__item"})[
+                "href"]).split('/')[-1]
+        }
 
-        type = split[0]
-        isPaid = split[1]
+    def _parse_description(self, soup: BeautifulSoup) -> str:
+        """From page content gets text that describes event
 
-        title_tag = event.find(
-            "a", {"class": "event-list-item__title"})
-        title = title_tag.string.replace("\n", "")
-        meta_id = title_tag["href"].split('/')[-1]
+        Args:
+            soup (BeautifulSoup): event page
 
-        date = event.find(
-            "div", {"class": "event-list-item__info"}).string.replace("\n", "")
-        _location = event.find(
-            "div", {"class": "event-list-item__info event-list-item__info_location"})
-        _isOnline = event.find(
-            "div", {"class": "event-list-item__info event-list-item__info_online"})
-
-        location = _location.string.replace(
-            "\n", "") if _location is not None else None
-        isOnline = _isOnline.string.replace(
-            "\n", "") if _isOnline is not None else None
-
-        startDate, endDate = _parse_date(date)
-
-        event_page_soup = BeautifulSoup(requests.get(
-            "https://it-events.com" + title_tag["href"]).text, "html.parser")
-
-        description_raw = event_page_soup.find(
+        Returns:
+            str: text that describes event
+        """
+        description_raw = soup.find(
             "div", {"class": "col-md-8 user-generated"})
 
         description = re.sub(' +', ' ', "".join(
             description_raw.find_all(text=True, recursive=True))).strip()
 
-        events.append(
-            {
-                "title": title,
-                "type": type,
-                "isPaid": True if isPaid == "Платное" else False,
-                "isOnline": True if isOnline is not None else False,
-                "location": location,
-                "startDate": startDate.strftime("%d:%m:%Y"),
-                "endDate": endDate.strftime("%d:%m:%Y") if endDate is not None else None,
-                "description": description,
-                "meta": {
-                    "https://it-events.com/": meta_id
-                }
-            }
-        )
+        return description
 
-    return events
+    def _parse_event(self, soup: BeautifulSoup) -> dict:
+        """Parses entire event from page
 
+        Args:
+            soup (BeautifulSoup): event page
 
-def read_events():
-    """Recursively reads upcoming events from each page
-    while there is next one on https://it-events.com/
+        Returns:
+            dict: event object as dictionary (for easy json conversion)
+        """
+        title, type, location_online, date = soup.find(
+            "title").text.split(" / ")
 
-    Returns:
-        [list]: list of events as dictionaries
-    """
+        startDate, endDate = self._parse_date(date)
 
-    # TODO: async request process
-    # we can try to use asyncio for this purpsoe
+        location_online_split = location_online.split(", ")
 
-    events = []
+        is_online = location_online_split[-1] == "Онлайн трансляция"
 
-    url = "https://it-events.com"
-    content = requests.get(url)
-    soup = BeautifulSoup(content.text, "html.parser")
+        location = ", ".join(location_online_split[:-1])
 
-    while True:
-        events.append(_read_events_from_page(soup))
+        return {
+            "title": title,
+            "type": type,
+            "isPaid": self._parse_is_paid(soup),
+            "isOnline": is_online,
+            "location": location,
+            "startDate": startDate,
+            "endDate": endDate,
+            "description": self._parse_description(soup),
+            "meta": self._parse_meta(soup)
+        }
 
-        next = soup.find("a", text="Следующая")
+    def _get_event_urls(self) -> list:
+        """Scarps https://it-events.com for event urls
 
-        if next is None:
-            break
-        else:
-            content = requests.get(url + next["href"])
-            soup = BeautifulSoup(content.text, "html.parser")
+        Returns:
+            list: of event urls as strs
+        """
+        soup = BeautifulSoup(requests.get(self._URL).text, "html.parser")
 
-    return events
+        upcoming_nav_soup = soup.find(
+            "li", {"class": "nav-tabs-item nav-tabs-item_active nav-tabs-item_main"})
 
+        upcoming_events_count = int(upcoming_nav_soup.find(
+            "span", {"class": "nav-tabs-item__count"}).text)
 
-class ITEventsCrawler:
-    name = "it_events_crawler"
+        page_count = math.ceil(upcoming_events_count / 20)
+
+        page_urls = [self._URL + "/?page={}".format(i)
+                     for i in range(1, page_count + 1)]
+
+        event_urls = []
+
+        for url in page_urls:
+            res = requests.get(url)
+
+            page_soup = BeautifulSoup(res.text, "html.parser")
+
+            event_links = page_soup.find_all(
+                "a", {"class": "event-list-item__title"})
+
+            event_urls.extend([self._URL + event_link["href"]
+                               for event_link in event_links])
+
+        return event_urls
+
+    def get_events(self) -> list:
+        """Parses all upcoming events from https://it-events.com
+
+        Returns:
+            list: of events as dictionaries for easy json encoding
+        """
+        event_urls = self._get_event_urls()
+
+        print(
+            "Acquiring information about {} of upcoming events".format(len(event_urls)))
+
+        events = []
+
+        for url in event_urls:
+            print(
+                "Parsing event at {}".format(url))
+
+            res = requests.get(url)
+
+            event_soup = BeautifulSoup(res.text, "html.parser")
+
+            events.append(self._parse_event(event_soup))
+
+        return events
+
+    # API
 
     @rpc
     def get_upcoming_events(self):
-        events = read_events()
-
+        events = self.get_events()
         return events
 
     @http("GET", "/events")
     def get_upcoming_events_http(self, request):
-        events = read_events()
+        events = self.get_events()
 
+        # ensure_ascii=True due to cyrillic symbols
         return json.dumps(events, ensure_ascii=False)
