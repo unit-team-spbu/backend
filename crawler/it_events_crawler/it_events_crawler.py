@@ -92,7 +92,7 @@ class ITEventsCrawler:
             dict: pair of info source http address and event ID in the IS 
         """
         return {
-            self._URL: (soup.find("a", {"class": "header__item"})[
+            self.name: (soup.find("a", {"class": "header__item"})[
                 "href"]).split('/')[-1]
         }
 
