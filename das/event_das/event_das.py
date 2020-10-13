@@ -1,7 +1,9 @@
 from nameko.web.handlers import http
 from nameko.rpc import rpc
 from nameko_mongodb import MongoDatabase
-from werkzeug.wrappers import Request
+from werkzeug.wrappers import Request, Response
+from bson.objectid import ObjectId
+import requests
 import json
 
 
@@ -96,27 +98,87 @@ class EventsDAS:
         if len(new_events) > 0:
             collection.insert_many(new_events)
 
+    def _query_events(self, query):
+        pass
+
+    def _get_event_by_id(self, id):
+        return self.db["events"].find_one({"_id": ObjectId(id)})
+
     # API
 
     @http("POST", "/events")
-    def save_events_handler(self, request: Request):
+    def process_events_handler(self, request: Request):
         """Handler for _save_events() method
 
         Args:
             request (Request): http request with events in body
 
         Returns:
-            (list): of ids (string ObjectId)
+            (Response): Status Code: 201
         """
         content = request.get_data(as_text=True)
+
         events = json.loads(content)
 
         self._process_events_save(events)
 
-        return (201, "Success")
+        return Response(status=201)
 
     @rpc
     def save_events(self, events):
+        """RPC handler for _save_events() method
+
+        Args:
+            events (list): of event dicts
+        """
         self._process_events_save(events)
 
         return
+
+    @http("GET", "/events")
+    def query_events_handler(self, request: Request):
+        """Handler for entire app quering on events
+
+        Args:
+            request (Request): contains the following request body:
+
+            {
+                "query" : {
+                    "from" : "dd/mm/YYYY",
+                    "to" : "dd/mm/YYYY",
+                    "tags" : [],
+                    "type" : "<type>",
+                    // etc.
+                }
+            }
+
+            Warning: empty query is not accepted
+
+        Returns:
+            Response: Status Code: 200; Payload: event list
+        """
+        content = request.get_data(as_text=True)
+        query = json.loads(content)
+
+        events = self._query_events(query)
+
+        return 200, {"Content-Type": "application/json"}, json.dumps(events, ensure_ascii=False)
+        # , json.dumps(event)
+
+    @http("GET", "/events/<string:id>")
+    def get_event_by_id_handler(self, request: Request, id: str):
+        """Get exactly one or zero events by id 
+
+        Args:
+            request (Request): HTTP request
+            id (str): stringified ObjectId
+
+        Returns:
+            Response: Status Code: 200; Payload: event
+        """
+
+        event = self._get_event_by_id(id) or {}
+
+        # TODO: fix ObjectId json encoding
+        event["_id"] = str(event["_id"])
+        return 200, {"Content-Type": "application/json"}, json.dumps(event, ensure_ascii=False)
