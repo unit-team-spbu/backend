@@ -33,8 +33,8 @@ class PREH:
         unquie_events = list()
         for i in range(len(events)):
             cur_event = copy.deepcopy(events[i])
-            for j in range(len(events)):
-                if i != j and self._eq_ev(events[i], events[j]):
+            for j in range(i + 1, len(events)):
+                if self._eq_ev(events[i], events[j]):
                     cur_event['meta'].update(events[j]['meta'])
             unquie_events.append(cur_event)
         return unquie_events
