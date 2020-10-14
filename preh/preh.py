@@ -30,14 +30,18 @@ class PREH:
     def _unduplicate(self, events):
         """Removes duplicates from different crawlers and 
             appends meta data for duplicate events"""
-        unquie_events = list()
-        for i in range(len(events)):
-            cur_event = copy.deepcopy(events[i])
+
+        for i in range (len(events)):
+            erase_list = list()
             for j in range(i + 1, len(events)):
-                if self._eq_ev(events[i], events[j]):
-                    cur_event['meta'].update(events[j]['meta'])
-            unquie_events.append(cur_event)
-        return unquie_events
+                if _eq_ev(events[i], events[j]):
+                    events[i]['meta'].update(events[j]['meta'])
+                    erase_list.append(j)
+            deleted = 0
+            for ind in erase_list:
+                events.pop(ind - deleted)
+                deleted += 1
+        return events
 
     # API
 
