@@ -1,5 +1,4 @@
 from nameko.rpc import rpc, RpcProxy
-import copy
 import string
 
 
@@ -49,10 +48,9 @@ class PREH:
     def receive_events(self, events):
         """Receiving events from REC 
         :param events: events got from REC service"""
+        
+        unique_events = self._unduplicate(events)
 
-        self.event_das_rpc.save_events(self._unduplicate(events))
+        self.event_das_rpc.save_events(unique_events)
 
-        # TODO: Send new events to ETA
-        return self.new_events
-
-
+        return unique_events
