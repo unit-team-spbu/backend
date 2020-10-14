@@ -9,13 +9,11 @@ class PREH:
 
     name = "primary_raw_events_handler"
     event_das_rpc = RpcProxy('event_das')
-    new_events = list()
-    existing_events = list()
 
     # Logic
 
     def _eq_ev(ev1, ev2):
-        """Determine whether events are equal by their title
+        """Determine whether events are equal by their title`
             :param ev1: the first event
                 ev2: the second event
             :return bool value"""
@@ -48,15 +46,9 @@ class PREH:
         """Receiving events from REC 
         :param events: events got from REC service"""
 
-        events = self._unduplicate(events)
-        for event in events:
-            # Check for existing in DB ?
-            if self.event_das_rpc.contain(event):
-                self.existing_events.append(event)
-            else:
-                self.new_events.append(event)
-        
-        self.event_das_rpc.save_events(self.existing_events)
+        self.event_das_rpc.save_events(self._unduplicate(events))
 
         # TODO: Send new events to ETA
         return self.new_events
+
+
