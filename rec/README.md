@@ -3,6 +3,12 @@
 Название сервиса: `raw_events_collector`
 
 ## API
+### RPC
+В `nameko shell` для получения новых событий:
+```
+n.rpc.raw_events_collector.update()
+```
+
 ### HTTP
 ```
 GET http://localhost:8000/events HTTP/1.1
