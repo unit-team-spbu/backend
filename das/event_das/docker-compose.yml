@@ -1,0 +1,39 @@
+version: "3.8"
+
+services:
+  rabbit:
+    image: rabbitmq:3-management
+    ports:
+      - "15672:15672"
+
+  mongodb:
+    image: mongo
+    container_name: mongodb
+    restart: always
+
+  mongodb_gui:
+    image: mongo-express
+    container_name: mongodb_gui
+    restart: always
+    ports:
+      - "8081:8081"
+    depends_on:
+      - mongodb
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongodb
+      - ME_CONFIG_MONGODB_PORT=27017
+
+  event_das:
+    build:
+      context: .
+    depends_on:
+      - rabbit
+      - mongodb
+    ports:
+      - "8000:8000"
+    environment:
+      RABBIT_PASSWORD: "guest"
+      RABBIT_USER: "guest"
+      RABBIT_HOST: "rabbit"
+      RABBIT_PORT: "5672"
+      MONGODB_CONNECTION_URL: "mongodb://mongodb:27017"

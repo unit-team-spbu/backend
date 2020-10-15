@@ -14,6 +14,7 @@ class REC:
     name = "raw_events_collector"
     # Crawlers-----------------------------------
     it_events_rpc = RpcProxy('it_events_crawler')
+    softline_rpc = RpcProxy('softline_crawler')
     #--------------------------------------------
     preh_rpc = RpcProxy('primary_raw_events_handler')
 
@@ -38,7 +39,7 @@ class REC:
 
         # requesting events from each crawler------------------------------
         get_res.append(self.it_events_rpc.get_upcoming_events.call_async())
-
+        get_res.append(self.softline_rpc.get_upcoming_events.call_async())
         # Needs to be changed with every new crawler-----------------------
         
         print("Fetching data...")
