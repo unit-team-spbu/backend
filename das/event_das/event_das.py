@@ -98,13 +98,33 @@ class EventsDAS:
         if len(new_events) > 0:
             collection.insert_many(new_events)
 
-    def _query_events(self, query):
-        pass
-
     def _get_event_by_id(self, id):
         return self.db["events"].find_one({"_id": ObjectId(id)})
 
     # API
+
+    @rpc
+    def save_events(self, events):
+        """RPC handler for _save_events() method
+
+        Args:
+            events (list): of event dicts
+        """
+        self._process_events_save(events)
+
+        return
+
+    @rpc
+    def get_event_by_id(self, id):
+        """RPC handler for _get_event_by_id() method
+
+        Args:
+            id (str): event id of string type (ObjectId)
+
+        Returns:
+            dict: event as dictionary object
+        """
+        return self._get_event_by_id(id)
 
     @http("POST", "/events")
     def process_events_handler(self, request: Request):
@@ -123,47 +143,6 @@ class EventsDAS:
         self._process_events_save(events)
 
         return Response(status=201)
-
-    @rpc
-    def save_events(self, events):
-        """RPC handler for _save_events() method
-
-        Args:
-            events (list): of event dicts
-        """
-        self._process_events_save(events)
-
-        return
-
-    @http("GET", "/events")
-    def query_events_handler(self, request: Request):
-        """Handler for entire app quering on events
-
-        Args:
-            request (Request): contains the following request body:
-
-            {
-                "query" : {
-                    "from" : "dd/mm/YYYY",
-                    "to" : "dd/mm/YYYY",
-                    "tags" : [],
-                    "type" : "<type>",
-                    // etc.
-                }
-            }
-
-            Warning: empty query is not accepted
-
-        Returns:
-            Response: Status Code: 200; Payload: event list
-        """
-        content = request.get_data(as_text=True)
-        query = json.loads(content)
-
-        events = self._query_events(query)
-
-        return 200, {"Content-Type": "application/json"}, json.dumps(events, ensure_ascii=False)
-        # , json.dumps(event)
 
     @http("GET", "/events/<string:id>")
     def get_event_by_id_handler(self, request: Request, id: str):
