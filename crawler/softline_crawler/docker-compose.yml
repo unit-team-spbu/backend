@@ -1,0 +1,20 @@
+version: "3.8"
+
+services:
+  rabbit:
+    image: rabbitmq:3-management
+    ports:
+      - "15672:15672"
+
+  softline_crawler:
+    build:
+      context: .
+    depends_on:
+      - rabbit
+    ports:
+      - "8000:8000"
+    environment:
+      RABBIT_PASSWORD: "guest"
+      RABBIT_USER: "guest"
+      RABBIT_HOST: "rabbit"
+      RABBIT_PORT: "5672"
