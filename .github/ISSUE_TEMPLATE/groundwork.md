@@ -7,11 +7,11 @@ assignees: ''
 
 ---
 
-**Related to**
+## Задача
 Link feature request issue related to this groundwork
 
-**What should be done?**
+## Технические Требования
 Put here description of what we should implement
 
-**Ideas on solution** 
+## Материалы и ссылки
 Explain how you want it to be implemented
