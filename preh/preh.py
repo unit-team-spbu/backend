@@ -11,7 +11,7 @@ class PREH:
 
     # Logic
 
-    def _eq_ev(ev1, ev2):
+    def _eq_ev(self, ev1, ev2):
         """Determine whether events are equal by their title`
             :param ev1: the first event
                 ev2: the second event
@@ -33,7 +33,7 @@ class PREH:
         for i in range (len(events)):
             erase_list = list()
             for j in range(i + 1, len(events)):
-                if _eq_ev(events[i], events[j]):
+                if self._eq_ev(events[i], events[j]):
                     events[i]['meta'].update(events[j]['meta'])
                     erase_list.append(j)
             deleted = 0
