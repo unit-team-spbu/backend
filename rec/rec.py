@@ -16,6 +16,7 @@ class REC:
     it_events_rpc = RpcProxy('it_events_crawler')
     softline_rpc = RpcProxy('softline_crawler')
     #--------------------------------------------
+    preh_rpc = RpcProxy('primary_raw_events_handler')
 
     # Logic
 
@@ -49,7 +50,7 @@ class REC:
             print(f"[{count}/{len(get_res)}] crawlers ready")
             count += 1
 
-        # TODO: Pass events to the next service 
+        self.preh_rpc.receive_events(events)
         return events
 
     @http('GET', '/events')
