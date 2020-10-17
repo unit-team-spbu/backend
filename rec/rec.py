@@ -10,12 +10,13 @@ from time import sleep
 class REC:
     """Microservice for requesting events from every crawler"""
     # Vars
-    
+
     name = "raw_events_collector"
     # Crawlers-----------------------------------
     it_events_rpc = RpcProxy('it_events_crawler')
     softline_rpc = RpcProxy('softline_crawler')
-    #--------------------------------------------
+    it_world_rpc = RpcProxy('it_world_crawler')
+    # --------------------------------------------
     preh_rpc = RpcProxy('primary_raw_events_handler')
 
     # Logic
@@ -27,7 +28,7 @@ class REC:
         for crawler in cfg.CRAWLERS:
             self.crawlers_rpc.append(RpcProxy(crawler))
 
-    #API
+    # API
 
     @rpc
     def update(self):
@@ -40,8 +41,9 @@ class REC:
         # requesting events from each crawler------------------------------
         get_res.append(self.it_events_rpc.get_upcoming_events.call_async())
         get_res.append(self.softline_rpc.get_upcoming_events.call_async())
+        get_res.append(self.it_world_rpc.get_upcoming_events.call_async())
         # Needs to be changed with every new crawler-----------------------
-        
+
         print("Fetching data...")
         # getting results
         count = 1
@@ -63,12 +65,12 @@ class REC:
         now = datetime.now().time()
         if now < cfg.TIME:
             delta = timedelta(hours=(cfg.TIME.hour - now.hour),
-                        minutes=(cfg.TIME.minute - now.minute),
-                        seconds=(cfg.TIME.second - now.second))
+                              minutes=(cfg.TIME.minute - now.minute),
+                              seconds=(cfg.TIME.second - now.second))
         elif now > cfg.TIME:
             delta = timedelta(hours=(24 - now.hour + cfg.TIME.hour),
-                        minutes=(-now.minute + cfg.TIME.minute),
-                        seconds=(-now.second + cfg.TIME.second))
+                              minutes=(-now.minute + cfg.TIME.minute),
+                              seconds=(-now.second + cfg.TIME.second))
         print(f"Waiting {delta} ...")
         sleep(delta.total_seconds())
         return self.update()
