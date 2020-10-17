@@ -9,7 +9,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY config.yml ./
 COPY run.sh ./
-COPY softline_crawler.py ./
+COPY preh.py ./
 
 RUN chmod +x ./run.sh
 
