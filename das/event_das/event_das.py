@@ -158,6 +158,5 @@ class EventsDAS:
 
         event = self._get_event_by_id(id) or {}
 
-        # TODO: fix ObjectId json encoding
         event["_id"] = str(event["_id"])
         return 200, {"Content-Type": "application/json"}, json.dumps(event, ensure_ascii=False)

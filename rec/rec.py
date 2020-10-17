@@ -1,3 +1,4 @@
+import json
 from nameko.rpc import rpc
 from nameko.rpc import RpcProxy
 from nameko.timer import timer
@@ -13,6 +14,7 @@ class REC:
 
     name = "raw_events_collector"
     # Crawlers-----------------------------------
+    # TODO : find a way to inject crawlers via some updatable config
     it_events_rpc = RpcProxy('it_events_crawler')
     softline_rpc = RpcProxy('softline_crawler')
     it_world_rpc = RpcProxy('it_world_crawler')
@@ -39,9 +41,14 @@ class REC:
         events = list()
 
         # requesting events from each crawler------------------------------
-        get_res.append(self.it_events_rpc.get_upcoming_events.call_async())
-        get_res.append(self.softline_rpc.get_upcoming_events.call_async())
-        get_res.append(self.it_world_rpc.get_upcoming_events.call_async())
+        # ignoring errors
+        # TODO: add proper error handling for each crawler
+        try:
+            get_res.append(self.it_events_rpc.get_upcoming_events.call_async())
+            get_res.append(self.softline_rpc.get_upcoming_events.call_async())
+            get_res.append(self.it_world_rpc.get_upcoming_events.call_async())
+        except:
+            pass
         # Needs to be changed with every new crawler-----------------------
 
         print("Fetching data...")
@@ -52,13 +59,20 @@ class REC:
             print(f"[{count}/{len(get_res)}] crawlers ready")
             count += 1
 
-        self.preh_rpc.receive_events(events)
-        return events
+        # try/finally allows us to ignore if this service doesn't exist
+        # TODO: get rid of this dumb try/finally
+        try:
+            self.preh_rpc.receive_events(events)
+        finally:
+            return events
 
     @http('GET', '/events')
     def force_update_handler(self, request):
-        return self.update()
+        events = self.update()
 
+        return (200, json.dumps(events, ensure_ascii=False))
+
+    # TODO: ensure it works @MaxKuznets0v
     @timer(interval=cfg.TIMER, eager=True)
     def handle_update(self):
         """Waiting for update time and calling update"""

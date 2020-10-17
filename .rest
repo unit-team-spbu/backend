@@ -1,0 +1,11 @@
+@localhost=localhost
+@it_events_crawler_port=8080
+@it_world_crawler_port=8008
+@softline_crawler_port=8082
+@rec_port=8000
+@preh_port=
+@event_das_port=8001
+
+###
+
+GET http://localhost:{{rec_port}}/events HTTP/1.1

@@ -68,6 +68,7 @@ class ITWorldCrawler:
             type = event.find('div').find('a').text
 
             location = event.find('div', {'class': 'ico-line ico-place'})
+            
             if location:
                 location = location.text
                 isOnline = False
