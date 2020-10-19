@@ -51,14 +51,14 @@ class ITEventsCrawler:
             month = self._MONTHS[spld[1]]
             year = int(spld[2])
 
-            return ("{}/{}/{}".format(day, month, year), None)
+            return ("{}.{}.{}".format(day, month, year), None)
         elif len(spld) == 5:
             day_1 = int(spld[0])
             day_2 = int(spld[2])
             month = self._MONTHS[spld[3]]
             year = int(spld[4])
 
-            return ("{}/{}/{}".format(day_1, month, year), "{}/{}/{}".format(day_2, month, year))
+            return ("{}.{}.{}".format(day_1, month, year), "{}.{}.{}".format(day_2, month, year))
         else:
             day_1 = int(spld[0])
             month_1 = self._MONTHS[spld[1]]
@@ -67,7 +67,7 @@ class ITEventsCrawler:
             month_2 = self._MONTHS[spld[5]]
             year_2 = int(spld[6])
 
-            return ("{}/{}/{}".format(day_1, month_1, year_1), "{}/{}/{}".format(day_2, month_2, year_2))
+            return ("{}.{}.{}".format(day_1, month_1, year_1), "{}.{}.{}".format(day_2, month_2, year_2))
 
     def _parse_is_paid(self, soup: BeautifulSoup) -> bool:
         """From page content finds out of event is paid or not

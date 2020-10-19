@@ -3,7 +3,6 @@ from nameko.rpc import rpc
 from nameko_mongodb import MongoDatabase
 from werkzeug.wrappers import Request, Response
 from bson.objectid import ObjectId
-import requests
 import json
 
 
@@ -79,9 +78,6 @@ class EventsDAS:
 
                 if event["endDate"] != saved_event["endDate"]:
                     update["endDate"] = event["endDate"]
-
-                if event["isOnline"] != saved_event["isOnline"]:
-                    update["isOnline"] = event["isOnline"]
 
                 print("Update: {}".format(update))
 

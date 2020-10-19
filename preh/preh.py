@@ -56,7 +56,7 @@ class PREH:
             "meta": event["meta"],
             "tags": list(filter(None, [
                 "online" if event["isOnline"] else None,
-                event["type"].lower(),
+                event["type"].lower() if event["type"] else None,
                 "paid" if event["isPaid"] else None
             ]))
         }, events))
