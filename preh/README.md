@@ -1,6 +1,6 @@
 # Primary Raw Events Handler
 
-Название сервиса: 
+Название сервиса: `primary_raw_events_handler`
 
 ## API
 ### RPC
