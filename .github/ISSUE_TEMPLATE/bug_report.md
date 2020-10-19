@@ -7,32 +7,21 @@ assignees: ''
 
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+## Опишите ошибку
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+Описание фактического поведения
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+## Шаги для воспроизведения
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+Чтобы повторить ошибку:
+1. Перейдите '...'
+2. Нажмите '....'
+3. Ошибка
 
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
+## Ожидаемое поведение
 
-**Smartphone (please complete the following information):**
- - Device: [e.g. iPhone6]
- - OS: [e.g. iOS8.1]
- - Browser [e.g. stock browser, safari]
- - Version [e.g. 22]
+Описание того, как система должна себя вести
 
-**Additional context**
-Add any other context about the problem here.
+## Дополнительно
+
+Скриншоты, информация об окружении и машине, любая полезная дополнительная информация
