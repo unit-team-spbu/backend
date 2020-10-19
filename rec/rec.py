@@ -69,8 +69,13 @@ class REC:
     @http('GET', '/events')
     def force_update_handler(self, request):
         events = self.update()
-
-        return (200, json.dumps(events, ensure_ascii=False))
+        
+        # try/finally allows us to ignore if this service doesn't exist
+        # TODO: get rid of this dumb try/finally
+        try:
+            self.preh_rpc.receive_events(events)
+        finally:
+            return (200, json.dumps(events, ensure_ascii=False))
 
     # TODO: ensure it works @MaxKuznets0v
     @timer(interval=cfg.TIMER, eager=True)
