@@ -33,42 +33,58 @@ class ITWorldCrawler:
             print(e)
             return []
         soup = BeautifulSoup(r.text, "html.parser")
-        try:
-            events_tmp = soup.find(
-                'div', {'class': 'content'}).find_all('div', {'class': 'news-float separator'})
-        except requests.exceptions.RequestException as e:
-            print(e)
-            return []
+
+        events_tmp = soup.find(
+            'div', {'class': 'content'})
+        if not events_tmp:
+            print('main page has not been loaded')
+            return[]
+        else:
+            events_tmp = events_tmp.find_all('div', {'class': 'news-float separator'})
 
         for event in events_tmp:
 
             title = event.find(
-                'h3').text
+                'h3')
+            if title:
+                title = title.text
 
             # get description
-            link_to_event = 'https://www.it-world.ru' + event.find(
-                'a', {'class': 'title-middle marker-future'}).get('href')
-            try:
-                r1 = requests.get(link_to_event)
-            except requests.exceptions.RequestException as e:
-                print(e)
-                return []
-            soup1 = BeautifulSoup(r1.text, "html.parser")
-            description = self._parse_description(
-                soup1.find('div', {'class': 'detail'}).text.split(
-                    'Зарегистрироваться')[-1]
-            )
+            link_tail = event.find(
+                'a', {'class': 'title-middle marker-future'})
+            if link_tail:
+                link_to_event = 'https://www.it-world.ru' + link_tail.get('href')
+                link_to_event = link_to_event.replace('.html', '/')
+
+                is_page_available = True
+                try:
+                    r1 = requests.get(link_to_event)
+                except requests.exceptions.RequestException as e:
+                    print(e)
+                    description = None
+                    is_page_available = False
+
+                if is_page_available:
+                    soup1 = BeautifulSoup(r1.text, "html.parser")
+                    description = soup1.find('div', {'class': 'detail'})
+                    if description:
+                        description = description.text.split(
+                            'Зарегистрироваться')[-1]
+                        description = self._parse_description(description)
+
+                meta = link_to_event.split('/')[-1].split('.')[0]
+                # for getting the page url you should get
+                # https://www.it-world.ru/events/forums<meta>
+                # it doesn't matter that the event might be not 'forums' type
+            else:
+                description = None
+                meta = None
             # gotten -------
-
-            meta = link_to_event.split('/')[-1].split('.')[0]
-            # for getting the page url you should get
-            # https://www.it-world.ru/events/forums<meta>
-            # it doesn't matter that the event might be not 'forums' type
-
-            type = event.find('div').find('a').text
+            type = event.find('div').find('a')
+            if type:
+                type = type.text
 
             location = event.find('div', {'class': 'ico-line ico-place'})
-            
             if location:
                 location = location.text
                 isOnline = False
