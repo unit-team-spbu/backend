@@ -7,11 +7,14 @@ assignees: ''
 
 ---
 
-**Is your feature request related to a problem? Please describe.**
-A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+## Проблема
 
-**Provide use cases if you can**
-Try to provide use-cases in "*In order to*-*As a*-*I want to*" format
+Опишите какую проблему вы хотите решить
 
-**Additional context**
-Any links, materials or your personal notes on this issue
+## Решение
+
+Объясните ваше видиние решение. Желательно объяснить почему именно оно должно быть выбрано.
+
+## Дополнительно
+
+Ссылки, материалы и все что кажется вам относящимся к проблеме
