@@ -1,0 +1,3 @@
+nameko
+pyjwt
+nameko-redis
