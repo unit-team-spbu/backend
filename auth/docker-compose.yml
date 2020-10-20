@@ -1,0 +1,30 @@
+version: "3.8"
+
+services:
+  rabbit:
+    image: rabbitmq:3-management
+    ports:
+      - "15672:15672"
+  
+  auth_redis:
+    image: redis:4-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    hostname: auth_redis
+    volumes:
+      - auth_redis-data:/data
+
+  auth:
+    build:
+      context: .
+    depends_on:
+      - rabbit
+    environment:
+      REDIS_HOST: "auth_redis"
+      REDIS_PORT: "6379"
+      RABBIT_PASSWORD: "guest"
+      RABBIT_USER: "guest"
+      RABBIT_HOST: "rabbit"
+      RABBIT_PORT: "5672"
+
+volumes:
+  auth_redis-data:
