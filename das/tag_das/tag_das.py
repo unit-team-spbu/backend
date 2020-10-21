@@ -107,15 +107,10 @@ class TagDAS:
 
         tags = self._upload_tags()
 
-        collection.insert_many(tags)
-
-        result = []
-
         for tag in tags:
-            del tag["_id"]
-            result.append(tag)
+            collection.update({"tag": tag["tag"]}, tag, upsert=True)
 
-        return 200, json.dumps(result, ensure_ascii=False)
+        return 200, ""
 
     @http("GET", "/tags")
     def get_tags_handler(self, _):
@@ -199,6 +194,7 @@ class TagDAS:
         result = []
 
         for tag in tags:
+            print(tag)
             del tag["_id"]
             result.append(tag)
 

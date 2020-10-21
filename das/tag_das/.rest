@@ -1,6 +1,6 @@
 @lh=http://localhost:8000
 @page=3
-@tag=c%23
+@tag=typescript
 
 ###
 
