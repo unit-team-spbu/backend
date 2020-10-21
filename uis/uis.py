@@ -30,24 +30,25 @@ class UIS:
          [user_id, ['tag_1', 'tag_2', ..., 'tag_n']],
          should write the line into the db
          with columns:
-             'user_id'
-             'raw_tags' - the list:
-                 [{'tag_name': 1.0}, ...]
+             '_id'
+             'tags' - the dict:
+                 {'tag_name': 1.0, ...}
                      where 1.0 is a weight of the tag
              'count_changes':
                  how many changes of weights the user in effect had done
         '''
 
         user_id = new_q[0]
-        raw_tags_list = new_q[1]
-        for raw_tag in raw_tags_list:
-            raw_tag = {raw_tag: 1.0}
+        tags_list = new_q[1]
+        raw_tags_dict = {}
+        for tag in tags_list:
+            raw_tags_dict[tag] = 1.0
 
         collection = self.db["interests"]
         collection.insert_one(
-            {"_id": user_id, "raw_tags": raw_tags_list, "count_changes": 1}
+            {"_id": user_id, "tags": raw_tags_dict, "count_changes": 1}
         )
-        return {user_id: raw_tags_list}
+        return {user_id: raw_tags_dict}
 
     def _update_like_data(self, message, event_tags=[]):
         '''
@@ -70,7 +71,7 @@ class UIS:
         user_id = message[0]
         user_tags = collection.find_one(
             {"_id": user_id},
-            {"_id": 0, "raw_tags": 1}
+            {"_id": 0, "tags": 1}
         )
         count = collection.find_one(
             {"_id": user_id},
@@ -86,7 +87,7 @@ class UIS:
             user_tags[event_tag] = total_weight
 
         collection.update_one(
-            {'_id': user_id}, {'$set': {"count_changes": count+1, "raw_tags": user_tags}})
+            {'_id': user_id}, {'$set': {"count_changes": count+1, "tags": user_tags}})
 
         return {user_id: user_tags}
 
@@ -94,7 +95,7 @@ class UIS:
         collection = self.db["interests"]
         user_weights = collection.find_one({
             {"_id": id},
-            {"_id": 0, "raw_tags": 1}
+            {"_id": 0, "tags": 1}
         })
         return user_weights
 
