@@ -108,7 +108,6 @@ class UIS:
         '''
         data = self._add_questonnaire_data(questionnaire)
         self.dispatch("make_top", data)
-        return data
 
     @rpc
     @event_handler("like_service", "like")
@@ -125,7 +124,6 @@ class UIS:
 
         data = self._update_like_data(message, event_tags)
         self.dispatch("make_top", data)
-        return data
 
     @rpc
     def get_weights_by_id(self, id):
