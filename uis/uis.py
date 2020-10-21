@@ -1,22 +1,24 @@
 from nameko.web.handlers import http
 from nameko.rpc import rpc, RpcProxy
-from nameko.events import event_handler
+from nameko.events import event_handler, EventDispatcher
 from nameko_mongodb import MongoDatabase
 from werkzeug.wrappers import Request, Response
 import json
+from bson.objectid import ObjectId
 
 
 class UIS:
     # Vars
-    
+
     # users' interests service
     name = "uis"
-    
+
     db = MongoDatabase()
-    
+    dispatch = EventDispatcher()
+
     # here will be the user-top-service
     next_service_rpc = RpcProxy('next_service')
-    
+
     event_das_rpc = RpcProxy('event_das')
 
     # Logic
@@ -88,32 +90,52 @@ class UIS:
 
         return {user_id: user_tags}
 
+    def _get_weights_by_id(self, id):
+        collection = self.db["interests"]
+        user_weights = collection.find_one({
+            {"_id": id},
+            {"_id": 0, "raw_tags": 1}
+        })
+        return user_weights
+
+    # API
+
     @rpc
     def create_new_q(self, questionnaire):
         '''
             questionnaire - [user_id, [tag_1, tag_2, ..., tag_n]]
         '''
         data = self._add_questonnaire_data(questionnaire)
-        # self.next_service_rpc.update_preferences(data)
+        self.dispatch("make_top", data)
         return data
 
+    @rpc
     @event_handler("like_service", "like")
     def update_q(self, message):
         '''
         message - [user_id, event_id]
         '''
         # нужно получить список тегов для мероприятия
-        # events = self.event_das_rpc.get_events_for_uis(message[1])
-        data = self._update_like_data(message)
-        # self.next_service_rpc.update_preferences(data)
+        event = self.event_das_rpc.get_event_by_id(ObjectId(message[1]))
+
+        event_tags = event['tags']
+        # this field does not exist yet
+        # must be like ['tag_1', 'tag_2', ... , 'tag_n]
+
+        data = self._update_like_data(message, event_tags)
+        self.dispatch("make_top", data)
         return data
+
+    @rpc
+    def get_weights_by_id(self, id):
+        return self._get_weights_by_id(id)
 
     @http("POST", "/newq")
     def create_new_q_handler(self, request: Request):
         content = request.get_data(as_text=True)
         questionnaire = json.loads(content)
         data = self._add_questonnaire_data(questionnaire)
-        # self.next_service_rpc.update_preferences(data)
+        self.dispatch("make_top", data)
         return Response(status=201)
 
         # POST http://localhost:8000/newq HTTP/1.1
@@ -127,12 +149,25 @@ class UIS:
     def update_q_handler(self, request: Request):
         content = request.get_data(as_text=True)
         like_message = json.loads(content)
-        # events = self.event_das_rpc.get_events_for_uis(like_message[1])
-        data = self._update_like_data(like_message)
-        # self.next_service_rpc.update_preferences(data)
+
+        # нужно получить список тегов для мероприятия
+        event = self.event_das_rpc.get_event_by_id(ObjectId(like_message[1]))
+
+        event_tags = event['tags']
+        # this field does not exist yet
+        # must be like ['tag_1', 'tag_2', ... , 'tag_n]
+
+        data = self._update_like_data(like_message, event_tags)
+        self.dispatch("make_top", data)
+
         return Response(status=201)
 
         # POST http://localhost:8000/got_like HTTP/1.1
         # Content-Type: application/json
         #
         # [1324, 8325453]
+
+    @http("GET", "/get_weights/<id>")
+    def get_weights_by_id_handler(self, request: Request, id):
+        user_weights = self._get_weights_by_id(id)
+        return json.dumps(user_weights, ensure_ascii=False)
