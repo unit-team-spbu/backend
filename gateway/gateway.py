@@ -229,6 +229,7 @@ class Gateway:
         """Making reaction
         request body:
             {
+                "token": <token>,
                 "value": <value> (like, dislike)
             }
         response:
