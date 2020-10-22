@@ -192,7 +192,8 @@ Content-Type: application/json
 
 {
     "token": <token>,
-    "value": <value> (like/dislike)
+    "value": <value>, (like/dislike)
+    "event_id": <event_id>
 }
 
 Response (Сообщение об успехе, либо ошибка):

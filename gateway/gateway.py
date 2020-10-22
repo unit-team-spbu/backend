@@ -230,7 +230,8 @@ class Gateway:
         request body:
             {
                 "token": <token>,
-                "value": <value> (like, dislike)
+                "value": <value>, (like, dislike)
+                "event_id": <event_id>
             }
         response:
             code message
@@ -248,9 +249,10 @@ class Gateway:
 
         if reaction_type == 'like':
             like = content['value']
+            event_id = content['event_id']
             # TODO: add service
             try:
-                self.like_reaction_rpc.make_reaction(user, like)
+                self.like_reaction_rpc.make_reaction(user, like, event_id)
             finally:
                 pass
         return Response(json.dumps({"message": "Reaction committed"}), 200)
