@@ -1,0 +1,64 @@
+# coding=utf-8
+from nameko.rpc import rpc, RpcProxy
+from nameko.events import event_handler
+from nameko.rpc import rpc
+from nameko.events import event_handler, EventDispatcher
+from nameko_mongodb import MongoDatabase
+import math
+
+
+class RankingService:
+
+    # Vars
+    name = 'ranking_service'
+    top_das_proxy = RpcProxy('top_das')
+    uis_proxy = RpcProxy('uis')
+
+    def _change_top_user(self, user_id, user_tags):
+        ''' 
+        принимает событие от uis или вызывается из функции _change_top_all, 
+        получает  user_id, {'tag_1':w_1, ..., 'tag_n':w_n}
+        на основе этого должен составить топ для данного пользователя
+        и записать данные в хранилище топов мероприятий для пользователей
+        например с помощью вызова функции 
+        self.top_das_proxy.update_top(user_id, [event_1_id, ..., event_n_id])
+
+        '''
+        # events - dict of events and their tags like
+        # {'event_id_1': ['tag_1',...,'tag_n'], ..., 'event_id_m':['tag_1',...,'tag_k']}
+        # assume that all tags for events have weights 1.0
+        # if they are presented in the event and 0 otherwise
+        len_y = math.sqrt(sum(val*val for val in user_tags.values()))
+        events = {}
+        top_events = {}
+        for event in events.items():
+            event_name, event_tags = event
+            len_x = math.sqrt(len(event_tags))
+            num = 0.0
+            for tag in user_tags.items():
+                name, w = tag
+                if name in event_tags:
+                    num += w
+            cosine = num/(len_x*len_y)
+            top_events[event_name] = cosine
+        top_events = sorted(top_events, key=top_events.get)
+        return top_events
+
+    @rpc
+    @event_handler("event_das", "new_events")
+    def change_top_all(self):
+        '''
+        принимает событие от event_das о добавлении новых мероприятий
+        должен обновить топы для всех пользователей
+        '''
+        # как-то получает список всех ид пользователей
+        user_ids = []
+        for user_id in user_ids:
+            tags = self.uis_proxy.get_weights_by_id(user_id)
+            self.change_top_user([user_id, tags])
+
+    @rpc
+    @event_handler("uis", "make_top")
+    def change_top_user(self, data):
+        top_tags = self._change_top_user(data[0], data[1])
+        self.top_das_proxy.update_top(data[0], top_tags)
