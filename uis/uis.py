@@ -10,6 +10,7 @@ from bson.objectid import ObjectId
 class UIS:
     # Vars
 
+    q_weight = 50.0  # assume that one questionnaire is equal to 50 likes of evets with those tags
     # users' interests service
     name = "uis"
 
@@ -40,15 +41,56 @@ class UIS:
 
         user_id = new_q[0]
         tags_list = new_q[1]
-        raw_tags_dict = {}
+        new_tags = {}  # new questionnaire tags
         for tag in tags_list:
-            raw_tags_dict[tag] = 1.0
+            new_tags[tag] = 1.0
 
         collection = self.db["interests"]
-        collection.insert_one(
-            {"_id": user_id, "tags": raw_tags_dict, "count_changes": 1}
-        )
-        return {user_id: raw_tags_dict}
+
+        previous_questionnaire_tags = collection.find_one(
+            {"_id": user_id},
+            {"_id": 0, "q_tags": 1}
+        )  # list type
+
+        if previous_questionnaire_tags:
+
+            tags = collection.find_one(
+                {"_id": user_id},
+                {"_id": 0, "tags": 1}
+            )  # all user tags - dict type
+            count = collection.find_one(
+                {"_id": user_id},
+                {"_id": 0, "count_changes": 1}
+            )  # count_changes var is not gonna be incremented
+            # because we simply replace one questionnaire with another one
+
+            # getting rid of influence of previous questionnaire
+            for old_tag in previous_questionnaire_tags:
+                weight = tags[old_tag] - self.q_weight/count
+                if weight < 0:  # actually that gonna be only in case of a deviation
+                    weight = 0
+                tags[old_tag] = weight
+
+            # add weights from new questionnaire
+            for new_tag in new_tags:
+                if new_tag in tags:
+                    # that tag is already presented
+                    total_weight = tags[new_tag]
+                else:
+                    # this is the new tag
+                    total_weight = 0.0
+                weight = (total_weight * count + self.q_weight)/count
+                tags[new_tag] = weight
+
+            collection.update_one(
+                {'_id': user_id}, {'$set': {"tags": tags, "q_tags": tags_list}})
+            return {user_id: tags}
+        else:
+            collection.insert_one(
+                {"_id": user_id, "tags": new_tags,
+                    "count_changes": self.q_weight, "q_tags": tags_list}
+            )
+            return {user_id: new_tags}
 
     def _update_like_data(self, message, event_tags=[]):
         '''
