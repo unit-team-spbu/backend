@@ -92,12 +92,12 @@ class Gateway:
 
     @http('GET', '/feed')
     @http('GET', '/feed/')
-    def feed_handler(request):
+    def feed_handler(self, request):
         """Getting top events for authorized user
         request body:
             {
                 "token": <token>, (optional)
-                "tags": <tags>, (optional)
+                "tags": [..], (optional)
             }
         response:
             User's top events json if he is authorized with correct token or
@@ -155,7 +155,7 @@ class Gateway:
 
     @http('GET', '/feed/<string:event_id>')
     @http('GET', '/feed/<string:event_id>/')
-    def get_event_handler(request, event_id):
+    def get_event_handler(self, request, event_id):
         """Getting info about specific event
         request body:
             {
@@ -186,14 +186,14 @@ class Gateway:
         finally:
             return Response(json.dumps(event), 200)
 
-    @http('POST,PUT,GET', '/interests')
-    @http('POST,PUT,GET', '/interests/')
+    @http('POST,PUT,GET', '/profile/interests')
+    @http('POST,PUT,GET', '/profile/interests/')
     def interest_handler(self, request):
         """Changing user's interests
         request body:
             {
                 "token": <token>, (optional)
-                "interests": (?) (optional)
+                "interests": ['tag1', 'tag2', ...] (optional)
             }
         response:
             interests if it's GET and message for code 
@@ -209,27 +209,32 @@ class Gateway:
 
         if request.method == 'GET':
             try:
-                interests = self.uis_rpc.get(user)
+                interests = self.uis_rpc.get_weights_by_id(user)
+                interests = list(interests)
             finally:
                 return Response(json.dumps(json.dumps(interests, ensure_ascii=False), 200))
         
         interests = self._get_content(request)['interests']
         try:
-            self.uis_rpc.create_new_q(user, interests)
+            self.uis_rpc.create_new_q([user, interests])
         finally:
             if request.method == 'POST':
                 return Response(json.dumps({"message": "Interests added"}), 201)
             else:
                 return Response(json.dumps({"message": "Interests changed"}), 200)
 
-    @http('POST', '/reaction') 
-    @http('POST', '/reaction/')  
-    def reaction_handler(self, request):
+    @http('POST', '/reaction/<string:reaction_type>') 
+    @http('POST', '/reaction/<string:reaction_type>/')  
+    def reaction_handler(self, request, reaction_type):
         """Making reaction
         request body:
             {
-                "reaction_type": <type>, (each reaction name for each reaction service)
                 "value": <value> (like, dislike)
+            }
+        response:
+            code message
+            {
+                "message": <msg>
             }
         """
         authorized, user = self._token_validate(request)
@@ -239,7 +244,6 @@ class Gateway:
             return Response(json.dumps({"message": "Invalid token"}), 403)
         
         content = self._get_content(request)
-        reaction_type = content['rection_type']
 
         if reaction_type == 'like':
             like = content['value']
