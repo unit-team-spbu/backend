@@ -141,7 +141,7 @@ Content-Type: application/json
     "interests": ['tag1', 'tag2', ...]
 }
 
-Reponse (Не передан токен, либо он неверный):
+Response (Не передан токен, либо он неверный):
 Status: 401 - пользователь не авторизован (токен не передан), 403 - неверный токен
 Content-Type: application/json
 
@@ -159,7 +159,7 @@ Content-Type: application/json
     "interests": ['tag1', 'tag2', ...]
 }
 
-Reponse (Сообщение об успешном добвалении, либо ошибка):
+Response (Сообщение об успешном добвалении, либо ошибка):
 Status: 200 - успех, 401 - пользователь не авторизован (токен не передан), 403 - неверный токен
 Content-Type: application/json
 
@@ -177,7 +177,7 @@ Content-Type: application/json
     "interests": ['tag1', 'tag2', ...]
 }
 
-Reponse (Сообщение об успешном изменении, либо ошибка):
+Response (Сообщение об успешном изменении, либо ошибка):
 Status: 200 - успех, 401 - пользователь не авторизован (токен не передан), 403 - неверный токен
 Content-Type: application/json
 
@@ -195,7 +195,7 @@ Content-Type: application/json
     "value": <value> (like/dislike)
 }
 
-Reponse (Сообщение об успехе, либо ошибка):
+Response (Сообщение об успехе, либо ошибка):
 Status: 200 - успех, 401 - пользователь не авторизован (токен не передан), 403 - неверный токен
 Content-Type: application/json
 
