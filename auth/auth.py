@@ -62,3 +62,10 @@ class Auth():
         except jwt.DecodeError:
             return False
         return payload['login']
+
+    @rpc 
+    def get_all_logins(self):
+        """Getting a list of all user logins
+        :returns:
+            keys - list of all logins"""
+        return self.db.keys()
