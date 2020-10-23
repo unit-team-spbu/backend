@@ -183,7 +183,7 @@ class UIS:
         like_message = json.loads(content)
 
         # нужно получить список тегов для мероприятия
-        event = self.event_das_rpc.get_event_by_id(ObjectId(like_message[1]))
+        event = self.event_das_rpc.get_event_by_id(like_message[1])
 
         event_tags = event['tags']
         # this field does not exist yet
