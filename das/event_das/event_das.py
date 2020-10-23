@@ -98,10 +98,10 @@ class EventsDAS:
         return self.db["events"].find_one({"_id": ObjectId(id)})
 
     def _date_key(self, date):
-        """Comparing two string dates
+        """Making correct format for date
 
         Args:
-            date1, date2 (str): string event dates
+            date (str): date in format "dd/mm/yyyy"
 
         Rerurns:
             date (datetime.date): date for comparing"""
@@ -140,8 +140,8 @@ class EventsDAS:
     def get_events_by_date(self):
         """Getting all events sorted by date
             
-            Returns:
-                events (list): sorted by date list of events"""
+        Returns:
+            events (list): sorted by date list of events"""
         # Getting all actual events
         cursor = self.db['events'].find()
         events = list()
@@ -152,8 +152,60 @@ class EventsDAS:
         # Sorting by date
         return sorted(events, key=lambda event: self._date_key(event['startDate']))
 
-    @http('GET', '/events/all')
+    @rpc
+    def get_tags_by_id(self, event_id):
+        """Getting event tags by its id
+        
+        Args:
+            event_id (str): id for event
+            
+        Returns:
+            tags (list): list of event tags"""
+
+        return self._get_event_by_id(event_id)['tags']
+
+    @rpc
+    def get_event_tags(self):
+        """Getting event_id with tags for this event
+        
+        Returns:
+            events (dict): events in format 
+            {'event_id_1': ['tag_1',...,'tag_n'], ..., 
+            'event_id_m':['tag_1',...,'tag_k']}"""
+
+        events = dict()
+        cursor = self.db['events'].find()
+        for event in cursor:
+            events[str(event["_id"])] = event["tags"]
+        return events
+
+    @http('GET', '/events/<string:id>/tags')
+    def get_tags_by_id_handler(self, request, id):
+        """Handler for get_tags_by_id() method
+        
+        Args:
+            id (str): id (str): stringified ObjectId
+        
+        Returns: http response with tags"""
+
+        tags = self.get_tags_by_id(id)
+        return 200, {"Content-Type": "application/json"}, json.dumps(tags, ensure_ascii=False)
+
+    @http('GET', '/events/tags')
+    def get_event_tags_handler(self, request):
+        """Handler for get_event_tags() method
+        
+        Returns: http response with dict of ids and tags"""
+
+        event_tags = self.get_event_tags()
+        return 200, {"Content-Type": "application/json"}, json.dumps(event_tags, ensure_ascii=False)
+    
+    @http('GET', '/events')
     def get_events_by_date_handler(self, request):
+        """Handler for get_events_by_date() method
+        
+        Response:
+            http response with events in body"""
         events = self.get_events_by_date()
         return 200, {"Content-Type": "application/json"}, json.dumps(events, ensure_ascii=False)
 
