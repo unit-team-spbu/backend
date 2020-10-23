@@ -1,0 +1,3 @@
+nameko
+nameko_mongodb
+bs4

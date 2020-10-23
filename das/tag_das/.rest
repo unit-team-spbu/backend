@@ -1,0 +1,15 @@
+@lh=http://localhost:8000
+@page=3
+@tag=typescript
+
+###
+
+GET {{lh}}/tags/{{page}} HTTP/1.1
+
+### 
+
+GET {{lh}}/tag/{{tag}} HTTP/1.1
+
+### 
+
+GET {{lh}}/tags/upload HTTP/1.1
