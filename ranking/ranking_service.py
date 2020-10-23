@@ -13,7 +13,8 @@ class RankingService:
     name = 'ranking_service'
     top_das_rpc = RpcProxy('top_das')
     uis_rpc = RpcProxy('uis')
-    event_das_rpc = RpcProxy(event_das)
+    event_das_rpc = RpcProxy('event_das')
+    auth_rpc = RpcProxy('auth')
 
     # Logic
 
@@ -55,8 +56,7 @@ class RankingService:
         принимает событие от event_das о добавлении новых мероприятий
         должен обновить топы для всех пользователей
         '''
-        # как-то получает список ид всех пользователей
-        user_ids = []
+        user_ids = self.auth_rpc.get_all_logins()
         # как-то получает словарь всех ивэнтов в виде
         # {'event_id_1': ['tag_1',...,'tag_n'], ..., 'event_id_m':['tag_1',...,'tag_k']}
         events_tags = self.event_das_rpc.get_all_events_tags()
