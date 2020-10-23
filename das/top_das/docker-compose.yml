@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  rabbit:
+    image: rabbitmq:3-management
+    ports:
+      - "15672:15672"
+  
+  top_das_redis:
+    image: redis:4-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    hostname: top_das_redis
+    volumes:
+      - top_das_redis-data:/data
+
+  top_das:
+    build:
+      context: .
+    depends_on:
+      - rabbit
+    ports:
+      - "8000:8000"
+    environment:
+      REDIS_HOST: "top_das_redis"
+      REDIS_PORT: "6379"
+      RABBIT_PASSWORD: "guest"
+      RABBIT_USER: "guest"
+      RABBIT_HOST: "rabbit"
+      RABBIT_PORT: "5672"
+
+volumes:
+  top_das_redis-data:
