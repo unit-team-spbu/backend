@@ -57,9 +57,7 @@ class RankingService:
         должен обновить топы для всех пользователей
         '''
         user_ids = self.auth_rpc.get_all_logins()
-        # как-то получает словарь всех ивэнтов в виде
-        # {'event_id_1': ['tag_1',...,'tag_n'], ..., 'event_id_m':['tag_1',...,'tag_k']}
-        events_tags = self.event_das_rpc.get_all_events_tags()
+        events_tags = self.event_das_rpc.get_event_tags()
         for user_id in user_ids:
             tags = self.uis_rpc.get_weights_by_id(user_id)
             self.change_top_user([user_id, tags, events_tags])
