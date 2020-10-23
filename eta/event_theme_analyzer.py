@@ -86,3 +86,10 @@ class EventThemeAnalyzer:
         description = request.get_data(as_text=True)
 
         return 200, json.dumps(self._analyze(description), ensure_ascii=False)
+
+    @rpc
+    def analyze_events(self, events):
+        for event in events:
+            event["tags"].extend(self._analyze(event["description"]))
+
+        return events
