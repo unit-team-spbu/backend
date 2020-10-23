@@ -4,7 +4,6 @@ from nameko.events import event_handler, EventDispatcher
 from nameko_mongodb import MongoDatabase
 from werkzeug.wrappers import Request, Response
 import json
-from bson.objectid import ObjectId
 
 
 class UIS:
@@ -154,12 +153,7 @@ class UIS:
         '''
         message - [user_id, event_id]
         '''
-        # нужно получить список тегов для мероприятия
-        event = self.event_das_rpc.get_event_by_id(ObjectId(message[1]))
-
-        event_tags = event['tags']
-        # this field does not exist yet
-        # must be like ['tag_1', 'tag_2', ... , 'tag_n]
+        event_tags = self.event_das_rpc.get_tags_by_id(message[1])
 
         data = self._update_like_data(message, event_tags)
         self.dispatch("make_top", data)
