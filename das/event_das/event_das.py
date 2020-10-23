@@ -97,6 +97,20 @@ class EventsDAS:
     def _get_event_by_id(self, id):
         return self.db["events"].find_one({"_id": ObjectId(id)})
 
+    def _date_key(self, date):
+        """Comparing two string dates
+
+        Args:
+            date1, date2 (str): string event dates
+
+        Rerurns:
+            date (datetime.date): date for comparing"""
+        import datetime
+
+        date = date.split('/')
+        date = [int(elem) for elem in date]
+        return datetime.date(date[2], date[1], date[0])
+
     # API
 
     @rpc
@@ -121,6 +135,27 @@ class EventsDAS:
             dict: event as dictionary object
         """
         return self._get_event_by_id(id)
+
+    @rpc
+    def get_events_by_date(self):
+        """Getting all events sorted by date
+            
+            Returns:
+                events (list): sorted by date list of events"""
+        # Getting all actual events
+        cursor = self.db['events'].find()
+        events = list()
+        for row in cursor:
+            row["_id"] = str(row["_id"])
+            events.append(row)
+        
+        # Sorting by date
+        return sorted(events, key=lambda event: self._date_key(event['startDate']))
+
+    @http('GET', '/events/all')
+    def get_events_by_date_handler(self, request):
+        events = self.get_events_by_date()
+        return 200, {"Content-Type": "application/json"}, json.dumps(events, ensure_ascii=False)
 
     @http("POST", "/events")
     def process_events_handler(self, request: Request):
