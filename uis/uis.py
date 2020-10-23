@@ -17,9 +17,6 @@ class UIS:
     db = MongoDatabase()
     dispatch = EventDispatcher()
 
-    # here will be the user-top-service
-    next_service_rpc = RpcProxy('next_service')
-
     event_das_rpc = RpcProxy('event_das')
 
     # Logic
@@ -84,13 +81,13 @@ class UIS:
 
             collection.update_one(
                 {'_id': user_id}, {'$set': {"tags": tags, "q_tags": tags_list}})
-            return {user_id: tags}
+            return [user_id, tags]
         else:
             collection.insert_one(
                 {"_id": user_id, "tags": new_tags,
                     "count_changes": self.q_weight, "q_tags": tags_list}
             )
-            return {user_id: new_tags}
+            return [user_id, new_tags]
 
     def _update_like_data(self, message, event_tags=[]):
         '''
@@ -131,7 +128,7 @@ class UIS:
         collection.update_one(
             {'_id': user_id}, {'$set': {"count_changes": count+1, "tags": user_tags}})
 
-        return {user_id: user_tags}
+        return [user_id, user_tags]
 
     def _get_weights_by_id(self, id):
         collection = self.db["interests"]
@@ -212,3 +209,4 @@ class UIS:
     def get_weights_by_id_handler(self, request: Request, id):
         user_weights = self._get_weights_by_id(id)
         return json.dumps(user_weights, ensure_ascii=False)
+
