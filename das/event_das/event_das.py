@@ -134,7 +134,9 @@ class EventsDAS:
         Returns:
             dict: event as dictionary object
         """
-        return self._get_event_by_id(id)
+        event = self._get_event_by_id(id)
+        event["_id"] = str(event["_id"])
+        return event
 
     @rpc
     def get_events_by_date(self):
@@ -191,7 +193,7 @@ class EventsDAS:
         tags = self.get_tags_by_id(id)
         return 200, {"Content-Type": "application/json"}, json.dumps(tags, ensure_ascii=False)
 
-    @http('GET', '/events/tags')
+    @http('GET', '/tags')
     def get_event_tags_handler(self, request):
         """Handler for get_event_tags() method
         
@@ -200,7 +202,7 @@ class EventsDAS:
         event_tags = self.get_event_tags()
         return 200, {"Content-Type": "application/json"}, json.dumps(event_tags, ensure_ascii=False)
     
-    @http('GET', '/events')
+    @http('GET', '/allevents')
     def get_events_by_date_handler(self, request):
         """Handler for get_events_by_date() method
         
