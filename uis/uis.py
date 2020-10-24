@@ -110,11 +110,11 @@ class UIS:
         user_tags = collection.find_one(
             {"_id": user_id},
             {"_id": 0, "tags": 1}
-        )
+        )['tags']
         count = collection.find_one(
             {"_id": user_id},
             {"_id": 0, "count_changes": 1}
-        )
+        )['count_changes']
 
         for event_tag in event_tags:
             if event_tag in user_tags:
@@ -134,7 +134,7 @@ class UIS:
         user_weights = collection.find_one({
             {"_id": id},
             {"_id": 0, "tags": 1}
-        })
+        })['tags']
         return user_weights
 
     # API
