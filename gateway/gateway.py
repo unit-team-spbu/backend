@@ -205,11 +205,12 @@ class Gateway:
             return Response(json.dumps({"message": "Invalid token"}), 403)
 
         if request.method == 'GET':
-            try:
-                interests = self.uis_rpc.get_weights_by_id(user)
-                interests = list(interests)
-            finally:
-                return Response(json.dumps(json.dumps(interests, ensure_ascii=False), 200))
+            interests = self.uis_rpc.get_weights_by_id(user)
+            clean_interests = list()
+            for item in interests.items():
+                if item[1]:
+                    clean_interests.append(item[0])
+            return Response(json.dumps(clean_interests, ensure_ascii=False), 200)
         
         interests = self._get_content(request)['interests']
         try:
