@@ -49,7 +49,7 @@ class Auth():
         :params: login, password
         :returns: JWT or False if user is not valid"""
         if self._is_valid(login, password):
-            return jwt.encode({ 'login': login }, cfg.JWT_SECRET, cfg.JWT_ALGORITHM)    
+            return jwt.encode({ 'login': login }, cfg.JWT_SECRET, cfg.JWT_ALGORITHM).decode('utf-8')    
         else:
             return False
 
