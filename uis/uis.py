@@ -123,6 +123,10 @@ class UIS:
                 total_weight = 0.0
             total_weight = (total_weight*count + 1.0)/(count+1.0)
             user_tags[event_tag] = total_weight
+            
+        for user_tag in user_tags:
+            if user_tag not in event_tags:
+                user_tags[user_tag] = user_tags[user_tag]*count/(count+1.0)
 
         collection.update_one(
             {'_id': user_id}, {'$set': {"count_changes": count+1, "tags": user_tags}})
