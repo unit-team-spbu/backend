@@ -36,7 +36,7 @@ class Gateway:
         except KeyError:
             authorized = False
         if authorized:
-            user = self._token_validate(token)
+            user = self.auth_rpc.check_jwt(token)
         return authorized, user
 
     # API
@@ -83,12 +83,10 @@ class Gateway:
         """
         user_data = self._get_content(request)
         login, password = user_data['login'], user_data['password']
-        try:
-            token = self.auth_rpc.login(login, password)
-        finally:
-            if not token:
-                return Response(json.dumps({"message": "Wrong credentials"}), status=400)
-            return Response(json.dumps({"token": token.decode('utf-8')}), 202)
+        token = self.auth_rpc.login(login, password)
+        if not token:
+            return Response(json.dumps({"message": "Wrong credentials"}), status=400)
+        return Response(json.dumps({"token": token}), 202)
 
     @http('GET', '/feed')
     @http('GET', '/feed/')
@@ -140,7 +138,6 @@ class Gateway:
             except KeyError:
                 tags = []
 
-            # TODO: adjust signature if needed
             try:
                 events = self.filter_rpc.get_events(user, tags)
             finally:
