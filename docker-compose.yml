@@ -1,96 +1,15 @@
 version: "3.8"
+
 services:
   rabbit:
     image: rabbitmq:3-management
     ports:
       - "15672:15672"
-
-  raw_events_collector:
+  rec:
     build:
       context: ./rec
     depends_on:
       - rabbit
-    ports:
-      - "8000:8000"
-    environment:
-      RABBIT_PASSWORD: "guest"
-      RABBIT_USER: "guest"
-      RABBIT_HOST: "rabbit"
-      RABBIT_PORT: "5672"
-
-  primary_raw_events_handler:
-    build:
-      context: ./preh
-    depends_on:
-      - rabbit
-    environment:
-      RABBIT_PASSWORD: "guest"
-      RABBIT_USER: "guest"
-      RABBIT_HOST: "rabbit"
-      RABBIT_PORT: "5672"
-
-  it_events_crawler:
-    build:
-      context: ./crawler/it_events_crawler
-    depends_on:
-      - rabbit
-    ports:
-      - "8080:8000"
-    environment:
-      RABBIT_PASSWORD: "guest"
-      RABBIT_USER: "guest"
-      RABBIT_HOST: "rabbit"
-      RABBIT_PORT: "5672"
-
-  softline_crawler:
-    build:
-      context: ./crawler/softline_crawler
-    depends_on:
-      - rabbit
-    ports:
-      - "8082:8000"
-    environment:
-      RABBIT_PASSWORD: "guest"
-      RABBIT_USER: "guest"
-      RABBIT_HOST: "rabbit"
-      RABBIT_PORT: "5672"
-
-  it_world_crawler:
-    build:
-      context: ./crawler/it_world_crawler
-    depends_on:
-      - rabbit
-    ports:
-      - "8008:8000"
-    environment:
-      RABBIT_PASSWORD: "guest"
-      RABBIT_USER: "guest"
-      RABBIT_HOST: "rabbit"
-      RABBIT_PORT: "5672"
-
-  mongodb:
-    image: mongo
-    container_name: mongodb
-    restart: always
-
-  mongodb_gui:
-    image: mongo-express
-    container_name: mongodb_gui
-    restart: always
-    ports:
-      - "8081:8081"
-    depends_on:
-      - mongodb
-    environment:
-      - ME_CONFIG_MONGODB_SERVER=mongodb
-      - ME_CONFIG_MONGODB_PORT=27017
-
-  event_das:
-    build:
-      context: ./das/event_das/
-    depends_on:
-      - rabbit
-      - mongodb
     ports:
       - "8001:8000"
     environment:
@@ -98,19 +17,146 @@ services:
       RABBIT_USER: "guest"
       RABBIT_HOST: "rabbit"
       RABBIT_PORT: "5672"
-      MONGODB_CONNECTION_URL: "mongodb://mongodb:27017"
-  
+  preh:
+    build:
+      context: ./preh
+    depends_on:
+      - rabbit
+    ports:
+      - "8002:8000"
+    environment:
+      RABBIT_PASSWORD: "guest"
+      RABBIT_USER: "guest"
+      RABBIT_HOST: "rabbit"
+      RABBIT_PORT: "5672"
+  tag_das_db:
+    image: mongo
+    container_name: tag_das_db
+    restart: always
+  tag_das_gui:
+    image: mongo-express
+    container_name: tag_das_gui
+    restart: always
+    ports:
+      - "8084:8081"
+    depends_on:
+      - tag_das_db
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=tag_das_db
+      - ME_CONFIG_MONGODB_PORT=27017
+  tag_das:
+    build:
+      context: ./das/tag_das
+    depends_on:
+      - rabbit
+      - tag_das_db
+    ports:
+      - "8002:8000"
+    environment:
+      RABBIT_PASSWORD: "guest"
+      RABBIT_USER: "guest"
+      RABBIT_HOST: "rabbit"
+      RABBIT_PORT: "5672"
+      MONGODB_CONNECTION_URL: "mongodb://event_das_db:27017"
+  eta:
+    build:
+      context: ./eta
+    depends_on:
+      - rabbit
+    ports:
+      - "8006:8000"
+    environment:
+      RABBIT_PASSWORD: "guest"
+      RABBIT_USER: "guest"
+      RABBIT_HOST: "rabbit"
+      RABBIT_PORT: "5672"
+  event_das_db:
+    image: mongo
+    container_name: event_das_db
+    restart: always
+  event_das_gui:
+    image: mongo-express
+    container_name: event_das_gui
+    restart: always
+    ports:
+      - "8083:8081"
+    depends_on:
+      - event_das_db
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=event_das_db
+      - ME_CONFIG_MONGODB_PORT=27017
+  event_das:
+    build:
+      context: ./das/event_das/
+    depends_on:
+      - rabbit
+      - event_das_db
+    ports:
+      - "8001:8000"
+    environment:
+      RABBIT_PASSWORD: "guest"
+      RABBIT_USER: "guest"
+      RABBIT_HOST: "rabbit"
+      RABBIT_PORT: "5672"
+      MONGODB_CONNECTION_URL: "mongodb://event_das_db:27017"
+  it_events_crawler:
+    build:
+      context: ./crawler/it_events_crawler
+    depends_on:
+      - rabbit
+    environment:
+      RABBIT_PASSWORD: "guest"
+      RABBIT_USER: "guest"
+      RABBIT_HOST: "rabbit"
+      RABBIT_PORT: "5672"
+  softline_crawler:
+    build:
+      context: ./crawler/softline_crawler
+    depends_on:
+      - rabbit
+    environment:
+      RABBIT_PASSWORD: "guest"
+      RABBIT_USER: "guest"
+      RABBIT_HOST: "rabbit"
+      RABBIT_PORT: "5672"
+  it_world_crawler:
+    build:
+      context: ./crawler/it_world_crawler
+    depends_on:
+      - rabbit
+    environment:
+      RABBIT_PASSWORD: "guest"
+      RABBIT_USER: "guest"
+      RABBIT_HOST: "rabbit"
+      RABBIT_PORT: "5672"
+  top_das_redis:
+    image: redis:4-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    hostname: top_das_redis
+  top_das:
+    build:
+      context: ./das/top_das
+    depends_on:
+      - rabbit
+    ports:
+      - "8000:8000"
+    environment:
+      REDIS_HOST: "top_das_redis"
+      REDIS_PORT: "6379"
+      RABBIT_PASSWORD: "guest"
+      RABBIT_USER: "guest"
+      RABBIT_HOST: "rabbit"
+      RABBIT_PORT: "5672"
   auth_redis:
     image: redis:4-alpine
     command: ["redis-server", "--appendonly", "yes"]
     hostname: auth_redis
-    volumes:
-      - auth_redis-data:/data
-
   auth:
     build: ./auth
     depends_on:
       - rabbit
+    ports:
+      - "8010:8000"
     environment:
       REDIS_HOST: "auth_redis"
       REDIS_PORT: "6379"
@@ -118,6 +164,51 @@ services:
       RABBIT_USER: "guest"
       RABBIT_HOST: "rabbit"
       RABBIT_PORT: "5672"
-
-volumes:
-  auth_redis-data:
+  filter:
+    build:
+      context: ./filter
+    depends_on: 
+      - rabbit
+    ports:
+      - "8007:8000"
+    environment:
+      RABBIT_PASSWORD: "guest"
+      RABBIT_USER: "guest"
+      RABBIT_HOST: "rabbit"
+      RABBIT_PORT: "5672"
+  uis:
+    build:
+      context: ./uis
+    depends_on: 
+      - rabbit
+    ports:
+      - "8008:8000"
+    environment: 
+      RABBIT_PASSWORD: "guest"
+      RABBIT_USER: "guest"
+      RABBIT_HOST: "rabbit"
+      RABBIT_PORT: "5672"
+  ranking:
+    build:
+      context: ./ranking
+    depends_on: 
+      - rabbit
+    ports:
+      - "8009:8000"
+    environment: 
+      RABBIT_PASSWORD: "guest"
+      RABBIT_USER: "guest"
+      RABBIT_HOST: "rabbit"
+      RABBIT_PORT: "5672"
+  gateway:
+    build:
+      context: ./gateway
+    depends_on: 
+      - rabbit
+    ports:
+      - "8000:8000"
+    environment: 
+      RABBIT_PASSWORD: "guest"
+      RABBIT_USER: "guest"
+      RABBIT_HOST: "rabbit"
+      RABBIT_PORT: "5672"

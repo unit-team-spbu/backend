@@ -1,5 +1,5 @@
 from nameko.web.handlers import http
-from nameko.rpc import rpc
+from nameko.rpc import RpcProxy, rpc
 from nameko_mongodb import MongoDatabase
 from werkzeug.wrappers import Request, Response
 from bson.objectid import ObjectId
@@ -11,6 +11,7 @@ class EventsDAS:
 
     name = "event_das"
     db = MongoDatabase()
+    eta = RpcProxy("event_theme_analyzer")
 
     # Logic
 
@@ -88,8 +89,10 @@ class EventsDAS:
             else:
                 new_events.append(event)
 
-                # TODO: send to Theme Analyzer and save analyzed event
-                # ! BLOCKED: no Event Theme Analyzer service present currently
+        # TODO: send to Theme Analyzer and save analyzed event
+        # ! BLOCKED: no Event Theme Analyzer service present currently
+
+        new_events = self.eta.analyze_events(new_events)
 
         if len(new_events) > 0:
             collection.insert_many(new_events)
@@ -141,7 +144,7 @@ class EventsDAS:
     @rpc
     def get_events_by_date(self):
         """Getting all events sorted by date
-            
+
         Returns:
             events (list): sorted by date list of events"""
         # Getting all actual events
@@ -150,17 +153,17 @@ class EventsDAS:
         for row in cursor:
             row["_id"] = str(row["_id"])
             events.append(row)
-        
+
         # Sorting by date
         return sorted(events, key=lambda event: self._date_key(event['startDate']))
 
     @rpc
     def get_tags_by_id(self, event_id):
         """Getting event tags by its id
-        
+
         Args:
             event_id (str): id for event
-            
+
         Returns:
             tags (list): list of event tags"""
 
@@ -169,7 +172,7 @@ class EventsDAS:
     @rpc
     def get_event_tags(self):
         """Getting event_id with tags for this event
-        
+
         Returns:
             events (dict): events in format 
             {'event_id_1': ['tag_1',...,'tag_n'], ..., 
@@ -184,10 +187,10 @@ class EventsDAS:
     @http('GET', '/events/<string:id>/tags')
     def get_tags_by_id_handler(self, request, id):
         """Handler for get_tags_by_id() method
-        
+
         Args:
             id (str): id (str): stringified ObjectId
-        
+
         Returns: http response with tags"""
 
         tags = self.get_tags_by_id(id)
@@ -196,16 +199,16 @@ class EventsDAS:
     @http('GET', '/tags')
     def get_event_tags_handler(self, request):
         """Handler for get_event_tags() method
-        
+
         Returns: http response with dict of ids and tags"""
 
         event_tags = self.get_event_tags()
         return 200, {"Content-Type": "application/json"}, json.dumps(event_tags, ensure_ascii=False)
-    
+
     @http('GET', '/allevents')
     def get_events_by_date_handler(self, request):
         """Handler for get_events_by_date() method
-        
+
         Response:
             http response with events in body"""
         events = self.get_events_by_date()

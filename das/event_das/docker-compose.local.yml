@@ -7,6 +7,22 @@ services:
       - "15672:15672"
       - "5672:5672"
 
+  event_theme_analyzer:
+    build: ./../../eta/
+    container_name: eta
+    restart: always
+    ports:
+      - "8001:8000"
+
+  tag_das:
+    build: ../tag_das/
+    container_name: tag_das
+    restart: always
+    depends_on: 
+      - mongodb
+    ports: 
+      - "8002:8000"
+
   mongodb:
     image: mongo
     container_name: mongodb
