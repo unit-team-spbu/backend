@@ -135,10 +135,10 @@ class UIS:
 
     def _get_weights_by_id(self, id):
         collection = self.db["interests"]
-        user_weights = collection.find_one({
+        user_weights = collection.find_one(
             {"_id": id},
             {"_id": 0, "tags": 1}
-        })['tags']
+        )['tags']
         return user_weights
 
     # API
