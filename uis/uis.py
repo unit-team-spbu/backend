@@ -46,18 +46,19 @@ class UIS:
         previous_questionnaire_tags = collection.find_one(
             {"_id": user_id},
             {"_id": 0, "q_tags": 1}
-        )  # list type
+        )['q_tags']  # list type
+        print(previous_questionnaire_tags)
 
         if previous_questionnaire_tags:
 
             tags = collection.find_one(
                 {"_id": user_id},
                 {"_id": 0, "tags": 1}
-            )  # all user tags - dict type
+            )['tags']  # all user tags - dict type
             count = collection.find_one(
                 {"_id": user_id},
                 {"_id": 0, "count_changes": 1}
-            )  # count_changes var is not gonna be incremented
+            )['count_changes']  # count_changes var is not gonna be incremented
             # because we simply replace one questionnaire with another one
 
             # getting rid of influence of previous questionnaire
@@ -95,14 +96,11 @@ class UIS:
         changes weights due to the following principal:
             the weight of the tag equals to probability of the fact that
             that tag is presented in a random chosen event that the user has liked
-
         for that:
         assume that all tags are of the same authority
-
         total_weight = (total_weight*count + \
                         new_weight_of_this_tag)/(count+1.0)
         ++count
-
         event_tags - list of tags related to liked event
         '''
         collection = self.db["interests"]
@@ -123,7 +121,7 @@ class UIS:
                 total_weight = 0.0
             total_weight = (total_weight*count + 1.0)/(count+1.0)
             user_tags[event_tag] = total_weight
-            
+
         for user_tag in user_tags:
             if user_tag not in event_tags:
                 user_tags[user_tag] = user_tags[user_tag]*count/(count+1.0)
@@ -146,7 +144,7 @@ class UIS:
     @rpc
     def create_new_q(self, questionnaire):
         '''
-            questionnaire - [user_id, [tag_1, tag_2, ..., tag_n]]
+            questionnaire - 
         '''
         data = self._add_questonnaire_data(questionnaire)
         self.dispatch("make_top", data)
@@ -207,4 +205,5 @@ class UIS:
     def get_weights_by_id_handler(self, request: Request, id):
         user_weights = self._get_weights_by_id(id)
         return json.dumps(user_weights, ensure_ascii=False)
+
 
