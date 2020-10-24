@@ -51,7 +51,7 @@ services:
       - rabbit
       - tag_das_db
     ports:
-      - "8002:8000"
+      - "8004:8000"
     environment:
       RABBIT_PASSWORD: "guest"
       RABBIT_USER: "guest"
@@ -92,7 +92,7 @@ services:
       - rabbit
       - event_das_db
     ports:
-      - "8001:8000"
+      - "8003:8000"
     environment:
       RABBIT_PASSWORD: "guest"
       RABBIT_USER: "guest"
@@ -139,7 +139,7 @@ services:
     depends_on:
       - rabbit
     ports:
-      - "8000:8000"
+      - "8005:8000"
     environment:
       REDIS_HOST: "top_das_redis"
       REDIS_PORT: "6379"
@@ -167,7 +167,7 @@ services:
   filter:
     build:
       context: ./filter
-    depends_on: 
+    depends_on:
       - rabbit
     ports:
       - "8007:8000"
@@ -179,11 +179,11 @@ services:
   uis:
     build:
       context: ./uis
-    depends_on: 
+    depends_on:
       - rabbit
     ports:
       - "8008:8000"
-    environment: 
+    environment:
       RABBIT_PASSWORD: "guest"
       RABBIT_USER: "guest"
       RABBIT_HOST: "rabbit"
@@ -191,11 +191,11 @@ services:
   ranking:
     build:
       context: ./ranking
-    depends_on: 
+    depends_on:
       - rabbit
     ports:
       - "8009:8000"
-    environment: 
+    environment:
       RABBIT_PASSWORD: "guest"
       RABBIT_USER: "guest"
       RABBIT_HOST: "rabbit"
@@ -203,11 +203,11 @@ services:
   gateway:
     build:
       context: ./gateway
-    depends_on: 
+    depends_on:
       - rabbit
     ports:
       - "8000:8000"
-    environment: 
+    environment:
       RABBIT_PASSWORD: "guest"
       RABBIT_USER: "guest"
       RABBIT_HOST: "rabbit"

@@ -3,3 +3,4 @@ nameko-mongodb
 nltk
 pymorphy2
 pymorphy2-dicts-ru
+numpy
