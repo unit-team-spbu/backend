@@ -67,4 +67,6 @@ class RankingService:
     def change_top_user(self, data):
         events_tags = self.event_das_rpc.get_event_tags()
         top_events = self._change_top_user(data[0], data[1], events_tags)
-        self.top_das_proxy.update_top(data[0], top_events)
+        self.top_das_rpc.update_top(data[0], top_events)
+        # for checking
+        # self.top_das_rpc.get_top(data[0])
