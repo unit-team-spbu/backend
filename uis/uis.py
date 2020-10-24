@@ -46,10 +46,10 @@ class UIS:
         previous_questionnaire_tags = collection.find_one(
             {"_id": user_id},
             {"_id": 0, "q_tags": 1}
-        )['q_tags']  # list type
-        print(previous_questionnaire_tags)
+        )  # dict type
 
         if previous_questionnaire_tags:
+            previous_questionnaire_tags = previous_questionnaire_tags['q_tags']
 
             tags = collection.find_one(
                 {"_id": user_id},
@@ -205,5 +205,3 @@ class UIS:
     def get_weights_by_id_handler(self, request: Request, id):
         user_weights = self._get_weights_by_id(id)
         return json.dumps(user_weights, ensure_ascii=False)
-
-
