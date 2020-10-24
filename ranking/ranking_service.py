@@ -44,7 +44,7 @@ class RankingService:
                     num += w
             cosine = num/(len_x*len_y)
             top_events[event_name] = cosine
-        top_events = sorted(top_events, key=top_events.get)
+        top_events = sorted(top_events, key=top_events.get, reverse=True)
         return top_events
 
     # API
@@ -65,5 +65,6 @@ class RankingService:
     @rpc
     @event_handler("uis", "make_top")
     def change_top_user(self, data):
-        top_events = self._change_top_user(data[0], data[1], data[2])
+        events_tags = self.event_das_rpc.get_event_tags()
+        top_events = self._change_top_user(data[0], data[1], events_tags)
         self.top_das_proxy.update_top(data[0], top_events)
