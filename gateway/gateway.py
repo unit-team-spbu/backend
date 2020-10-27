@@ -181,7 +181,7 @@ class Gateway:
         try:
             event = self.event_das_rpc.get_event_by_id(event_id)
         finally:
-            return Response(json.dumps(event), 200)
+            return Response(json.dumps(event, ensure_ascii=False), 200)
 
     @http('POST,PUT,GET', '/profile/interests')
     @http('POST,PUT,GET', '/profile/interests/')
