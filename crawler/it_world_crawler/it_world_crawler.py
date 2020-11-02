@@ -40,7 +40,8 @@ class ITWorldCrawler:
             print('main page has not been loaded')
             return[]
         else:
-            events_tmp = events_tmp.find_all('div', {'class': 'news-float separator'})
+            events_tmp = events_tmp.find_all(
+                'div', {'class': 'news-float separator'})
 
         for event in events_tmp:
 
@@ -52,8 +53,12 @@ class ITWorldCrawler:
             # get description
             link_tail = event.find(
                 'a', {'class': 'title-middle marker-future'})
+            if not link_tail:
+                link_tail = event.find(
+                    'a', {'class': 'title-middle marker-current'})
             if link_tail:
-                link_to_event = 'https://www.it-world.ru' + link_tail.get('href')
+                link_to_event = 'https://www.it-world.ru' + \
+                    link_tail.get('href')
                 link_to_event = link_to_event.replace('.html', '/')
 
                 is_page_available = True
@@ -72,9 +77,9 @@ class ITWorldCrawler:
                             'Зарегистрироваться')[-1]
                         description = self._parse_description(description)
 
-                meta = link_to_event.split('/')[-1].split('.')[0]
+                meta = link_to_event.split('/')[-2]
                 # for getting the page url you should get
-                # https://www.it-world.ru/events/forums<meta>
+                # https://www.it-world.ru/events/forums/<meta>/
                 # it doesn't matter that the event might be not 'forums' type
             else:
                 description = None
@@ -118,7 +123,6 @@ class ITWorldCrawler:
                     self.name: meta
                 }
             })
-
         return events
 
     # API
