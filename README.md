@@ -11,7 +11,7 @@
 | Top Data Access Service    | `top_das`   | 8005/8085 |             |
 | Event Theme Analyzer       | `eta`       | 8006      |             |
 | Filter                     | `filter`    | 8007      |             |
-| User Interest Service      | `uis`       | 8008      |             |
+| User Interest Service      | `uis`       | 8008/8086 |             |
 | Ranking                    | `ranking`   | 8009      |             |
 | Auth                       | `auth`      | 8010      |             |
 | Gateway                    | `gateway`   | 8000      |             |

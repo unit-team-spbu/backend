@@ -57,7 +57,7 @@ services:
       RABBIT_USER: "guest"
       RABBIT_HOST: "rabbit"
       RABBIT_PORT: "5672"
-      MONGODB_CONNECTION_URL: "mongodb://event_das_db:27017"
+      MONGODB_CONNECTION_URL: "mongodb://tag_das_db:27017"
   eta:
     build:
       context: ./eta
@@ -176,11 +176,27 @@ services:
       RABBIT_USER: "guest"
       RABBIT_HOST: "rabbit"
       RABBIT_PORT: "5672"
+  uis_db:
+    image: mongo
+    container_name: uis_db
+    restart: always
+  uis_gui:
+    image: mongo-express
+    container_name: uis_gui
+    restart: always
+    ports:
+      - "8086:8081"
+    depends_on:
+      - uis_db
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=uis_db
+      - ME_CONFIG_MONGODB_PORT=27017
   uis:
     build:
       context: ./uis
     depends_on:
       - rabbit
+      - uis_db
     ports:
       - "8008:8000"
     environment:
@@ -188,6 +204,7 @@ services:
       RABBIT_USER: "guest"
       RABBIT_HOST: "rabbit"
       RABBIT_PORT: "5672"
+      MONGODB_CONNECTION_URL: "mongodb://uis_db:27017"
   ranking:
     build:
       context: ./ranking
