@@ -52,7 +52,7 @@ class PREH:
             "location": event["location"],
             "startDate": event["startDate"],
             "endDate": event["endDate"],
-            "description": event["description"].replace("\n", ""),
+            "description": "" if event["description"] is None else event["description"].replace("\n", ""),
             "meta": event["meta"],
             "tags": list(filter(None, [
                 "online" if event["isOnline"] else None,
