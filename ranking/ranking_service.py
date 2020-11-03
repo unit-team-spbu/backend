@@ -3,7 +3,6 @@ from nameko.rpc import rpc, RpcProxy
 from nameko.events import event_handler
 from nameko.rpc import rpc
 from nameko.events import event_handler, EventDispatcher
-from nameko_mongodb import MongoDatabase
 import math
 
 
