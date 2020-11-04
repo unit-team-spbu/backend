@@ -122,6 +122,8 @@ class ITEventsCrawler:
         Returns:
             dict: event object as dictionary (for easy json conversion)
         """
+        # TODO : sometimes title has different structure, we need to handle this situation
+        # ! see https://www.github.com/unit-team-spbu/backend/issues/49
         title, type, location_online, date = soup.find(
             "title").text.split(" / ")
 
@@ -200,7 +202,12 @@ class ITEventsCrawler:
 
             event_soup = BeautifulSoup(res.text, "html.parser")
 
-            events.append(self._parse_event(event_soup))
+            try:
+                event = self._parse_event(event_soup)
+            except:
+                pass
+            else:
+                events.append(event)
 
         return events
 
