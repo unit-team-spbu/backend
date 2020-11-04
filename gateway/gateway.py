@@ -56,7 +56,11 @@ class Gateway:
             }
         """
         user_data = self._get_content(request)
-        login, password = user_data['login'], user_data['password']
+        try:
+            login, password = user_data['login'], user_data['password']
+        except KeyError:
+            return Response(json.dumps({"message": "Login or password are not provided"}), status=401)
+
         if self.auth_rpc.register(login, password):
             return Response(json.dumps({"message": "User was registered"}), status=201)
         else:
@@ -82,7 +86,10 @@ class Gateway:
             }
         """
         user_data = self._get_content(request)
-        login, password = user_data['login'], user_data['password']
+        try:
+            login, password = user_data['login'], user_data['password']
+        except KeyError:
+            return Response(json.dumps({"message": "Login or password are not provided"}), status=401)
         token = self.auth_rpc.login(login, password)
         if not token:
             return Response(json.dumps({"message": "Wrong credentials"}), status=400)
