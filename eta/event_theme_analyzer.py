@@ -63,6 +63,9 @@ class EventThemeAnalyzer:
 
         print(tags)
 
+        if len(tags) == 0:
+            return []
+
         mean = statistics.mean([tags[key] for key in tags.keys()])
 
         print(mean)
