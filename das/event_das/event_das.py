@@ -104,13 +104,13 @@ class EventsDAS:
         """Making correct format for date
 
         Args:
-            date (str): date in format "dd/mm/yyyy"
+            date (str): date in format "dd.mm.yyyy"
 
         Rerurns:
             date (datetime.date): date for comparing"""
         import datetime
 
-        date = date.split('/')
+        date = date.split('.')
         date = [int(elem) for elem in date]
         return datetime.date(date[2], date[1], date[0])
 
