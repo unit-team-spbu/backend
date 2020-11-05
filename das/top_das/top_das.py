@@ -1,6 +1,7 @@
 from nameko.rpc import rpc
 from nameko_redis import Redis
 from nameko.web.handlers import http
+from nameko.events import event_handler
 import json
 
 
@@ -58,3 +59,30 @@ class Top_DAS:
         user = json.loads(content)['user']
 
         return 200, json.dumps(self.get_top(user), ensure_ascii=False)
+
+    @rpc
+    @event_handler("event_das", "expired_events")
+    def delete_events(self, event_ids):
+        """Removes expired events from users` tops"""
+        users = self.db.keys()
+        for user in users:
+            top = self.get_top(user)
+            update = list()
+            for id in top:
+                if id not in event_ids:
+                    update.append(id)
+            self.update_top(user, update)
+
+    @http('DELETE', '/delete')
+    def delete_events_handler(self, request):
+        """HTTP Handler for delete_events method
+        Request:
+            {
+                "ids": [...] - list of event_id
+            }
+            """
+        content = request.get_data(as_text=True)
+        ids = json.loads(content)['ids']
+        self.delete_events(ids)
+
+        return 200, "OK"

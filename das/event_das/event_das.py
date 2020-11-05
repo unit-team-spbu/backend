@@ -3,6 +3,7 @@ from nameko.rpc import RpcProxy, rpc
 from nameko_mongodb import MongoDatabase
 from werkzeug.wrappers import Request, Response
 from bson.objectid import ObjectId
+from nameko.events import EventDispatcher
 import json
 
 
@@ -12,6 +13,7 @@ class EventsDAS:
     name = "event_das"
     db = MongoDatabase()
     eta = RpcProxy("event_theme_analyzer")
+    dispatch = EventDispatcher()
 
     # Logic
 
@@ -97,6 +99,13 @@ class EventsDAS:
         if len(new_events) > 0:
             collection.insert_many(new_events)
 
+        ids = self._find_expired()
+        if len(ids) > 0:
+            self.dispatch("expired_events", ids)
+
+            for id in ids:
+                self._delete_event_by_id(id)
+
     def _get_event_by_id(self, id):
         return self.db["events"].find_one({"_id": ObjectId(id)})
 
@@ -113,6 +122,23 @@ class EventsDAS:
         date = date.split('.')
         date = [int(elem) for elem in date]
         return datetime.date(date[2], date[1], date[0])
+
+    def _find_expired(self):
+        """Checks db for expired events and returns list of ids"""
+        import datetime
+
+
+        event_ids = list()
+
+        cursor = self.db["events"].find({}, {"_id": 1, "startDate": 1, "endDate": 1})
+        for row in cursor:
+            if row["endDate"] is not None and datetime.datetime.now().date() > self._date_key(row["endDate"]) or row["endDate"] is None and datetime.datetime.now().date() > self._date_key(row["startDate"]):
+                event_ids.append(str(row["_id"]))
+        return event_ids
+
+    def _delete_event_by_id(self, id):
+        self.db["events"].delete_one({"_id": ObjectId(id)})
+                
 
     # API
 
