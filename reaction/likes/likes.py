@@ -164,7 +164,7 @@ class Likes:
         likes = self._get_likes(id)
         return json.dumps(likes, ensure_ascii=False)
 
-    @http("GET", "/is/<user_id>/<event_id>")
+    @http("GET", "/is_liked/<user_id>/<event_id>")
     def is_event_liked_http(self, request: Request, user_id, event_id):
         likes = self._get_likes(user_id)
         if event_id in likes:
