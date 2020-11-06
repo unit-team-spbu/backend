@@ -33,10 +33,16 @@ class Gateway:
             user = self.auth_rpc.check_jwt(token)
         return authorized, user
 
+    def _cors_response(self, response, origin, methods):
+        response.headers['Access-Control-Allow-Origin'] = origin
+        response.headers['Access-Control-Allow-Methods'] = methods
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        return response
+
     # API
 
-    @http('POST', '/register')
-    @http('POST', '/register/')
+    @http('POST,OPTIONS', '/register')
+    @http('POST,OPTIONS', '/register/')
     def register_handler(self, request):
         """Signing up user
         request body: 
@@ -49,12 +55,16 @@ class Gateway:
                 "message": <msg>
             }
         """
+        if request.method == 'OPTIONS':
+            return self._cors_response(Response(), '*', 'POST, OPTIONS')
+            
         user_data = self._get_content(request)
         login, password = user_data['login'], user_data['password']
-        return Response(json.dumps({"message": "User was registered"}), status=201)
+        response = self._cors_response(Response(json.dumps({"message": "User was registered"}), status=201), '*', 'POST, OPTIONS')
+        return response
     
-    @http('POST', '/login')
-    @http('POST', '/login/')
+    @http('POST,OPTIONS', '/login')
+    @http('POST,OPTIONS', '/login/')
     def login_handler(self, request):
         """Logging in user, sending JWT token
         request body:
@@ -72,13 +82,15 @@ class Gateway:
                 "message": <msg>
             }
         """
+        if request.method == 'OPTIONS':
+            return self._cors_response(Response(), '*', 'POST, OPTIONS')
         user_data = self._get_content(request)
         login, password = user_data['login'], user_data['password']
         token = "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NSIsIm5hbWUiOiJKb2huIEdvbGQiLCJhZG1pbiI6dHJ1ZX0K.LIHjWCBORSWMEibq-tnT8ue_deUqZx1K0XxCOXZRrBI"
-        return Response(json.dumps({"token": token}), 202)
+        return self._cors_response(Response(json.dumps({"token": token}), 202), '*', 'POST, OPTIONS')
 
-    @http('GET', '/feed')
-    @http('GET', '/feed/')
+    @http('GET,OPTIONS', '/feed')
+    @http('GET,OPTIONS', '/feed/')
     def feed_handler(self, request):
         """Getting top events for authorized user
         request body:
@@ -115,6 +127,8 @@ class Gateway:
                 "message": <msg>
             }
         """
+        if request.method == 'OPTIONS':
+            return self._cors_response(Response(), '*', 'GET, OPTIONS')
         events = [
                 {
                     "title": "Видео+Конференция 2020",
@@ -165,11 +179,10 @@ class Gateway:
                     ]
                 }
             ]
+        return self._cors_response(Response(json.dumps(events, ensure_ascii=False), status=200), '*', 'GET, OPTIONS')
 
-        return Response(json.dumps(events, ensure_ascii=False), status=200)
-
-    @http('GET', '/feed/<string:event_id>')
-    @http('GET', '/feed/<string:event_id>/')
+    @http('GET,OPTIONS', '/feed/<string:event_id>')
+    @http('GET,OPTIONS', '/feed/<string:event_id>/')
     def get_event_handler(self, request, event_id):
         """Getting info about specific event
         request body:
@@ -192,6 +205,9 @@ class Gateway:
                 "message": <msg>
             }
         """
+        if request.method == 'OPTIONS':
+            return self._cors_response(Response(), '*', 'GET, OPTIONS')
+
         event = {
                 "title": "Вводное занятие по контекстной рекламе",
                 "location": "Москва, Россия",
@@ -208,10 +224,10 @@ class Gateway:
                     "Тренинг"
                 ]
             }
-        return Response(json.dumps(event, ensure_ascii=False), 200)
+        return self._cors_response(Response(json.dumps(event, ensure_ascii=False), 200), '*', 'GET, OPTIONS')
 
-    @http('POST,PUT,GET', '/profile/interests')
-    @http('POST,PUT,GET', '/profile/interests/')
+    @http('POST,PUT,GET,OPTIONS', '/profile/interests')
+    @http('POST,PUT,GET,OPTIONS', '/profile/interests/')
     def interest_handler(self, request):
         """Changing user's interests
         request body:
@@ -225,21 +241,22 @@ class Gateway:
                 "message": <msg>
             }
         """
-
+        if request.method == 'OPTIONS':
+            return self._cors_response(Response(), '*', 'POST, PUT, GET, OPTIONS')
         if request.method == 'GET':
             clean_interests = ['C++', 'Стажировка', 'Хакатон', 'Тестирование']
 
-            return Response(json.dumps(clean_interests, ensure_ascii=False), 200)
+            return self._cors_response(Response(json.dumps(clean_interests, ensure_ascii=False), 200), '*', 'POST, PUT, GET, OPTIONS')
         
         interests = self._get_content(request)['interests']
 
         if request.method == 'POST':
-            return Response(json.dumps({"message": "Interests added"}), 201)
+            return self._cors_response(Response(json.dumps({"message": "Interests added"}), 201), '*', 'POST, PUT, GET, OPTIONS')
         else:
-            return Response(json.dumps({"message": "Interests changed"}), 200)
+            return self._cors_response(Response(json.dumps({"message": "Interests changed"}), 200), '*', 'POST, PUT, GET, OPTIONS')
 
-    @http('POST', '/reaction/<string:reaction_type>') 
-    @http('POST', '/reaction/<string:reaction_type>/')  
+    @http('POST,OPTIONS', '/reaction/<string:reaction_type>') 
+    @http('POST,OPTIONS', '/reaction/<string:reaction_type>/')  
     def reaction_handler(self, request, reaction_type):
         """Making reaction
         request body:
@@ -254,10 +271,12 @@ class Gateway:
                 "message": <msg>
             }
         """
+        if request.method == 'OPTIONS':
+            return self._cors_response(Response(), '*', 'POST, OPTIONS')
         content = self._get_content(request)
 
         if reaction_type == 'like':
             like = content['value']
             event_id = content['event_id']
 
-        return Response(json.dumps({"message": "Reaction committed"}), 200)
+        return self._cors_response(Response(json.dumps({"message": "Reaction committed"}), 200), '*', 'POST, PUT, GET, OPTIONS')
