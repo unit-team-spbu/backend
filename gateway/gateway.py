@@ -39,10 +39,16 @@ class Gateway:
             user = self.auth_rpc.check_jwt(token)
         return authorized, user
 
+    def _cors_response(self, response, origin, methods):
+        response.headers['Access-Control-Allow-Origin'] = origin
+        response.headers['Access-Control-Allow-Methods'] = methods
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        return response
+
     # API
 
-    @http('POST', '/register')
-    @http('POST', '/register/')
+    @http('POST,OPTIONS', '/register')
+    @http('POST,OPTIONS', '/register/')
     def register_handler(self, request):
         """Signing up user
         request body: 
@@ -55,19 +61,22 @@ class Gateway:
                 "message": <msg>
             }
         """
+        if request.method == 'OPTIONS':
+            return self._cors_response(Response(), '*', 'POST, OPTIONS')
+
         user_data = self._get_content(request)
         try:
             login, password = user_data['login'], user_data['password']
         except KeyError:
-            return Response(json.dumps({"message": "Login or password are not provided"}), status=401)
+            return self._cors_response(Response(json.dumps({"message": "Login or password are not provided"}), status=401), '*', 'POST, OPTIONS') 
 
         if self.auth_rpc.register(login, password):
-            return Response(json.dumps({"message": "User was registered"}), status=201)
+            return self._cors_response(Response(json.dumps({"message": "User was registered"}), status=201), '*', 'POST, OPTIONS')
         else:
-            return Response(json.dumps({"message": "Unable to sign up user"}), status=400)
+            return self._cors_response(Response(json.dumps({"message": "Unable to sign up user"}), status=400), '*', 'POST, OPTIONS')
     
-    @http('POST', '/login')
-    @http('POST', '/login/')
+    @http('POST,OPTIONS', '/login')
+    @http('POST,OPTIONS', '/login/')
     def login_handler(self, request):
         """Logging in user, sending JWT token
         request body:
@@ -85,18 +94,21 @@ class Gateway:
                 "message": <msg>
             }
         """
+        if request.method == 'OPTIONS':
+            return self._cors_response(Response(), '*', 'POST, OPTIONS')
+
         user_data = self._get_content(request)
         try:
             login, password = user_data['login'], user_data['password']
         except KeyError:
-            return Response(json.dumps({"message": "Login or password are not provided"}), status=401)
+            return self._cors_response(Response(json.dumps({"message": "Login or password are not provided"}), status=401), '*', 'POST, OPTIONS')
         token = self.auth_rpc.login(login, password)
         if not token:
-            return Response(json.dumps({"message": "Wrong credentials"}), status=400)
-        return Response(json.dumps({"token": token}), 202)
+            return self._cors_response(Response(json.dumps({"message": "Wrong credentials"}), status=400), '*', 'POST, OPTIONS')
+        return self._cors_response(Response(json.dumps({"token": token}), 202), '*', 'POST, OPTIONS')
 
-    @http('GET', '/feed')
-    @http('GET', '/feed/')
+    @http('GET,OPTIONS', '/feed')
+    @http('GET,OPTIONS', '/feed/')
     def feed_handler(self, request):
         """Getting top events for authorized user
         request body:
@@ -133,11 +145,14 @@ class Gateway:
                 "message": <msg>
             }
         """
+        if request.method == 'OPTIONS':
+            return self._cors_response(Response(), '*', 'GET, OPTIONS')
+
         authorized, user = self._token_validate(request)
         if authorized:
             # if token is invalid
             if not user:
-                return Response(json.dumps({"message": "Invalid token"}), status=403)
+                return self._cors_response(Response(json.dumps({"message": "Invalid token"}), status=403), '*', 'GET, OPTIONS')
 
             # if there's no tags provided
             try:
@@ -155,10 +170,10 @@ class Gateway:
             finally:
                 pass
 
-        return Response(json.dumps(events, ensure_ascii=False), status=200)
+        return self._cors_response(Response(json.dumps(events, ensure_ascii=False), status=200), '*', 'GET, OPTIONS')
 
-    @http('GET', '/feed/<string:event_id>')
-    @http('GET', '/feed/<string:event_id>/')
+    @http('GET,OPTIONS', '/feed/<string:event_id>')
+    @http('GET,OPTIONS', '/feed/<string:event_id>/')
     def get_event_handler(self, request, event_id):
         """Getting info about specific event
         request body:
@@ -181,17 +196,20 @@ class Gateway:
                 "message": <msg>
             }
         """
+        if request.method == 'OPTIONS':
+            return self._cors_response(Response(), '*', 'GET, OPTIONS')
+
         authorized, user = self._token_validate(request)
         if authorized and not user:
-            return Response(json.dumps({"message": "Invalid token"}), status=403)
+            return self._cors_response(Response(json.dumps({"message": "Invalid token"}), status=403), '*', 'GET, OPTIONS')
         
         try:
             event = self.event_das_rpc.get_event_by_id(event_id)
         finally:
-            return Response(json.dumps(event, ensure_ascii=False), 200)
+            return self._cors_response(Response(json.dumps(event, ensure_ascii=False), 200), '*', 'GET, OPTIONS')
 
-    @http('POST,PUT,GET', '/profile/interests')
-    @http('POST,PUT,GET', '/profile/interests/')
+    @http('POST,PUT,GET,OPTIONS', '/profile/interests')
+    @http('POST,PUT,GET,OPTIONS', '/profile/interests/')
     def interest_handler(self, request):
         """Changing user's interests
         request body:
@@ -205,11 +223,14 @@ class Gateway:
                 "message": <msg>
             }
         """
+        if request.method == 'OPTIONS':
+            return self._cors_response(Response(), '*', 'POST, PUT, GET, OPTIONS')
+
         authorized, user = self._token_validate(request)
         if not authorized:
-            return Response(json.dumps({"message": "User is not authorized"}), 401)
+            return self._cors_response(Response(json.dumps({"message": "User is not authorized"}), 401), 'POST, PUT, GET, OPTIONS')
         elif not user:
-            return Response(json.dumps({"message": "Invalid token"}), 403)
+            return self._cors_response(Response(json.dumps({"message": "Invalid token"}), 403), 'POST, PUT, GET, OPTIONS')
 
         if request.method == 'GET':
             interests = self.uis_rpc.get_weights_by_id(user)
@@ -217,19 +238,19 @@ class Gateway:
             for item in interests.items():
                 if item[1]:
                     clean_interests.append(item[0])
-            return Response(json.dumps(clean_interests, ensure_ascii=False), 200)
+            return self._cors_response(Response(json.dumps(clean_interests, ensure_ascii=False), 200), 'POST, PUT, GET, OPTIONS')
         
         interests = self._get_content(request)['interests']
         try:
             self.uis_rpc.create_new_q([user, interests])
         finally:
             if request.method == 'POST':
-                return Response(json.dumps({"message": "Interests added"}), 201)
+                return self._cors_response(Response(json.dumps({"message": "Interests added"}), 201), 'POST, PUT, GET, OPTIONS')
             else:
-                return Response(json.dumps({"message": "Interests changed"}), 200)
+                return self._cors_response(Response(json.dumps({"message": "Interests changed"}), 200), 'POST, PUT, GET, OPTIONS')
 
-    @http('POST', '/reaction/<string:reaction_type>') 
-    @http('POST', '/reaction/<string:reaction_type>/')  
+    @http('POST,OPTIONS', '/reaction/<string:reaction_type>') 
+    @http('POST,OPTIONS', '/reaction/<string:reaction_type>/')  
     def reaction_handler(self, request, reaction_type):
         """Making reaction
         request body:
@@ -244,11 +265,14 @@ class Gateway:
                 "message": <msg>
             }
         """
+        if request.method == 'OPTIONS':
+            return self._cors_response(Response(), '*', 'POST, OPTIONS')
+
         authorized, user = self._token_validate(request)
         if not authorized:
-            return Response(json.dumps({"message": "User is not authorized"}), 401)
+            return self._cors_response(Response(json.dumps({"message": "User is not authorized"}), 401), '*', 'POST, OPTIONS')
         elif not user:
-            return Response(json.dumps({"message": "Invalid token"}), 403)
+            return self._cors_response(Response(json.dumps({"message": "Invalid token"}), 403), '*', 'POST, OPTIONS')
         
         content = self._get_content(request)
 
@@ -260,4 +284,4 @@ class Gateway:
                 self.like_reaction_rpc.make_reaction(user, like, event_id)
             finally:
                 pass
-        return Response(json.dumps({"message": "Reaction committed"}), 200)
+        return self._cors_response(Response(json.dumps({"message": "Reaction committed"}), 200), '*', 'POST, OPTIONS')
