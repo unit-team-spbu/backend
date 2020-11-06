@@ -14,7 +14,8 @@ class Gateway:
     event_das_rpc = RpcProxy('event_das')
     filter_rpc = RpcProxy('filter')
     uis_rpc = RpcProxy('uis')
-    like_reaction_rpc = RpcProxy('like_reaction')
+    likes_rpc = RpcProxy('likes')
+    favorites_rpc = RpcProxy('favorites')
 
     # Logic
 
@@ -249,14 +250,25 @@ class Gateway:
             else:
                 return self._cors_response(Response(json.dumps({"message": "Interests changed"}), 200), '*', 'POST, PUT, GET, OPTIONS')
 
-    @http('POST,OPTIONS', '/reaction/<string:reaction_type>') 
-    @http('POST,OPTIONS', '/reaction/<string:reaction_type>/')  
+    @http('DELETE,GET,POST,OPTIONS', '/reaction/<string:reaction_type>') 
+    @http('DELETE,GET,POST,OPTIONS', '/reaction/<string:reaction_type>/')  
     def reaction_handler(self, request, reaction_type):
         """Making reaction
-        request body:
+        POST request body:
             {
                 "token": <token>,
-                "value": <value>, (like, dislike)
+                "event_id": <event_id>
+            }
+
+        GET request body:
+            {
+                "token": <token>,
+                "event_id": <event_id> (optional) - if included gets info about specific event
+            }
+        
+        DELETE request body:
+            {
+                "token: <token>,
                 "event_id": <event_id>
             }
         response:
@@ -266,22 +278,48 @@ class Gateway:
             }
         """
         if request.method == 'OPTIONS':
-            return self._cors_response(Response(), '*', 'POST, OPTIONS')
+            return self._cors_response(Response(), '*', 'DELETE, GET, POST, OPTIONS')
 
         authorized, user = self._token_validate(request)
         if not authorized:
-            return self._cors_response(Response(json.dumps({"message": "User is not authorized"}), 401), '*', 'POST, OPTIONS')
+            return self._cors_response(Response(json.dumps({"message": "User is not authorized"}), 401), '*', 'DELETE, GET, POST, OPTIONS')
         elif not user:
-            return self._cors_response(Response(json.dumps({"message": "Invalid token"}), 403), '*', 'POST, OPTIONS')
+            return self._cors_response(Response(json.dumps({"message": "Invalid token"}), 403), '*', 'DELETE, GET, POST, OPTIONS')
         
         content = self._get_content(request)
 
-        if reaction_type == 'like':
-            like = content['value']
+        if request.method == 'POST':
             event_id = content['event_id']
-            # TODO: add service
+
+            if reaction_type == 'like':
+                self.likes_rpc.new_like([user, event_id])
+            elif reaction_type == 'favorite':
+                self.favorites_rpc.new_fav([user, event_id])
+
+            return self._cors_response(Response(json.dumps({"message": "Reaction committed"}), 200), '*', 'DELETE, GET, POST, OPTIONS')
+        elif request.method == 'GET':
+            # Whether we need all user reactions or for specific event
+            all_data = True
             try:
-                self.like_reaction_rpc.make_reaction(user, like, event_id)
-            finally:
-                pass
-        return self._cors_response(Response(json.dumps({"message": "Reaction committed"}), 200), '*', 'POST, OPTIONS')
+                event_id = content['event_id']
+            except KeyError:
+                all_data = False
+
+            if reaction_type == 'like':
+                if all_data:
+                    self.likes_rpc.get_likes_by_id(user)
+                else:
+                    self.likes_rpc.get() # TODO: add proper call
+            elif reaction_type == 'favorite':
+                if all_data:
+                    self.favorites_rpc.get_favs_by_id(user)
+                else:
+                    self.favorites_rpc.get() # TODO: add proper call
+            return self._cors_response(Response(json.dumps({"message": "OK"}), 200), '*', 'DELETE, GET, POST, OPTIONS')
+        elif request.method == 'DELETE':
+            event_id = content['event_id']
+            if reaction_type == 'like':
+                self.likes_rpc.cancel_like([user, event_id])
+            elif reaction_type == 'favorite':
+                self.favorites_rpc.cancel_fav([user, event_id])
+            return self._cors_response(Response(json.dumps({"message": "Reaction removed"}), 200), '*', 'DELETE, GET, POST, OPTIONS')
