@@ -119,6 +119,13 @@ class Favorites:
     @rpc
     def get_favs_by_id(self, user_id):
         return self._get_favs(user_id)
+    
+    @rpc
+    def is_event_faved(self, user_id, event_id):
+        favs = self._get_favs(user_id)
+        if event_id in favs:
+            return True
+        return False
 
     @http("POST", "/new_fav")
     def new_fav_http(self, request: Request):
@@ -156,3 +163,10 @@ class Favorites:
     def get_favs_by_id_http(self, request: Request, id):
         favs = self._get_favs(id)
         return json.dumps(favs, ensure_ascii=False)
+    
+    @http("GET", "/is_faved/<user_id>/<event_id>")
+    def is_event_faved_http(self, request: Request, user_id, event_id):
+        favs = self._get_favs(user_id)
+        if event_id in favs:
+            return json.dumps(True, ensure_ascii=False)
+        return json.dumps(False, ensure_ascii=False)
