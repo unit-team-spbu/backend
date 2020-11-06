@@ -57,6 +57,8 @@ class EventsDAS:
 
         new_events = []
 
+        is_new_info = False  # True in case of info of existing events being updated
+
         for event in events:
             is_present, saved_event = self._check_event_presence(event)
 
@@ -88,6 +90,7 @@ class EventsDAS:
                     collection.update(
                         {"_id": saved_event["_id"]},
                         {"$set": update})
+                    is_new_info = True
             else:
                 new_events.append(event)
 
@@ -98,6 +101,9 @@ class EventsDAS:
 
         if len(new_events) > 0:
             collection.insert_many(new_events)
+            self.dispatch("new_events")
+        elif is_new_info:
+            self.dispatch("new_events")
 
         ids = self._find_expired()
         if len(ids) > 0:
@@ -127,10 +133,10 @@ class EventsDAS:
         """Checks db for expired events and returns list of ids"""
         import datetime
 
-
         event_ids = list()
 
-        cursor = self.db["events"].find({}, {"_id": 1, "startDate": 1, "endDate": 1})
+        cursor = self.db["events"].find(
+            {}, {"_id": 1, "startDate": 1, "endDate": 1})
         for row in cursor:
             if row["endDate"] is not None and datetime.datetime.now().date() > self._date_key(row["endDate"]) or row["endDate"] is None and datetime.datetime.now().date() > self._date_key(row["startDate"]):
                 event_ids.append(str(row["_id"]))
@@ -138,7 +144,6 @@ class EventsDAS:
 
     def _delete_event_by_id(self, id):
         self.db["events"].delete_one({"_id": ObjectId(id)})
-                
 
     # API
 
