@@ -228,9 +228,9 @@ class Gateway:
 
         authorized, user = self._token_validate(request)
         if not authorized:
-            return self._cors_response(Response(json.dumps({"message": "User is not authorized"}), 401), 'POST, PUT, GET, OPTIONS')
+            return self._cors_response(Response(json.dumps({"message": "User is not authorized"}), 401), '*', 'POST, PUT, GET, OPTIONS')
         elif not user:
-            return self._cors_response(Response(json.dumps({"message": "Invalid token"}), 403), 'POST, PUT, GET, OPTIONS')
+            return self._cors_response(Response(json.dumps({"message": "Invalid token"}), 403), '*', 'POST, PUT, GET, OPTIONS')
 
         if request.method == 'GET':
             interests = self.uis_rpc.get_weights_by_id(user)
@@ -238,16 +238,16 @@ class Gateway:
             for item in interests.items():
                 if item[1]:
                     clean_interests.append(item[0])
-            return self._cors_response(Response(json.dumps(clean_interests, ensure_ascii=False), 200), 'POST, PUT, GET, OPTIONS')
+            return self._cors_response(Response(json.dumps(clean_interests, ensure_ascii=False), 200), '*', 'POST, PUT, GET, OPTIONS')
         
         interests = self._get_content(request)['interests']
         try:
             self.uis_rpc.create_new_q([user, interests])
         finally:
             if request.method == 'POST':
-                return self._cors_response(Response(json.dumps({"message": "Interests added"}), 201), 'POST, PUT, GET, OPTIONS')
+                return self._cors_response(Response(json.dumps({"message": "Interests added"}), 201), '*', 'POST, PUT, GET, OPTIONS')
             else:
-                return self._cors_response(Response(json.dumps({"message": "Interests changed"}), 200), 'POST, PUT, GET, OPTIONS')
+                return self._cors_response(Response(json.dumps({"message": "Interests changed"}), 200), '*', 'POST, PUT, GET, OPTIONS')
 
     @http('POST,OPTIONS', '/reaction/<string:reaction_type>') 
     @http('POST,OPTIONS', '/reaction/<string:reaction_type>/')  
