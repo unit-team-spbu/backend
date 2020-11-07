@@ -38,6 +38,10 @@ class Likes:
             current_likes_list = current_likes_list["likes_list"]
             if event_id not in current_likes_list:
                 current_likes_list.append(event_id)
+                collection.update_one(
+                    {'_id': user_id},
+                    {'$set': {"likes_list": current_likes_list}}
+                )
                 return True
             return False
         else:
@@ -64,7 +68,7 @@ class Likes:
             print(Exception)
             return False
         if event_id in current_likes_list:
-            if current_likes_list.len() > 1:
+            if len(current_likes_list) > 1:
                 '''
                 just delete one item in list
                 '''
@@ -120,6 +124,13 @@ class Likes:
     def get_likes_by_id(self, user_id):
         return self._get_likes(user_id)
 
+    @rpc
+    def is_event_liked(self, user_id, event_id):
+        likes = self._get_likes(user_id)
+        if event_id in likes:
+            return True
+        return False
+
     @http("POST", "/new_like")
     def new_like_http(self, request: Request):
         content = request.get_data(as_text=True)
@@ -156,3 +167,10 @@ class Likes:
     def get_likes_by_id_http(self, request: Request, id):
         likes = self._get_likes(id)
         return json.dumps(likes, ensure_ascii=False)
+
+    @http("GET", "/is_liked/<user_id>/<event_id>")
+    def is_event_liked_http(self, request: Request, user_id, event_id):
+        likes = self._get_likes(user_id)
+        if event_id in likes:
+            return json.dumps(True, ensure_ascii=False)
+        return json.dumps(False, ensure_ascii=False)

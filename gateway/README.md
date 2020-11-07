@@ -185,14 +185,68 @@ Content-Type: application/json
     "message": <msg>
 }
 ```
-- Реакционное событие (лайк/дизлайк):
+Далее описаны запросы для лайков, для добавление в избранное заменить like на favorite в адресе
+- Реакционное событие (добавление лайка):
 ```
 POST http://localhost:8000/reaction/like HTTP/1.1
 Content-Type: application/json
 
 {
     "token": <token>,
-    "value": <value>, (like/dislike)
+    "event_id": <event_id>
+}
+
+Response (Сообщение об успехе, либо ошибка):
+Status: 200 - успех, 401 - пользователь не авторизован (токен не передан), 403 - неверный токен
+Content-Type: application/json
+
+{
+    "message": <msg>
+}
+```
+- Реакционное событие (получение всех лайков/наличие лайка у мероприятия):
+```
+GET http://localhost:8000/reaction/like HTTP/1.1
+Content-Type: application/json
+
+{
+    "token": <token>,
+    "event_id": <event_id> - Указывается, если нужно узнать наличие лайка у конкретного мероприятия
+}
+
+Response (успех, запрос на все лайки):
+Status: 200
+Content-Type: application/json
+
+[
+    event_id1, - id, лайкнутых всех событий
+    event_id2,
+    ...
+]
+
+Response (успех, конкретное мерориятие):
+Status: 200
+Content-Type: application/json
+
+{
+    "value": (true or false)
+}
+
+Response (ошибка):
+Status: 401 - пользователь не авторизован (токен не передан), 403 - неверный токен
+Content-Type: application/json
+
+{
+    "message": <msg>
+}
+```
+- Реакционное событие (удаление лайка):
+```
+DELETE http://localhost:8000/reaction/like HTTP/1.1
+Content-Type: application/json
+
+{
+    "token": <token>,
     "event_id": <event_id>
 }
 
