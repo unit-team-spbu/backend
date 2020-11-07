@@ -14,4 +14,6 @@
 | User Interest Service      | `uis`       | 8008/8086 |             |
 | Ranking                    | `ranking`   | 8009      |             |
 | Auth                       | `auth`      | 8010      |             |
+| Likes                      | `likes`     | 8011/8087 |             |
+| Favorites                  | `favorites` | 8012/8088 |             |
 | Gateway                    | `gateway`   | 8000      |             |
