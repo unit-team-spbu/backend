@@ -67,7 +67,7 @@ class TagDAS:
         return page_tags
 
     def _upload_tags(self):
-        _HABR_HUBS_URL = "https://habr.com/ru/hubs/"
+        _HABR_HUBS_URL = "https://habr.com/ru/hubs/develop/"
 
         tags = []
 
@@ -75,14 +75,16 @@ class TagDAS:
 
         soup = BeautifulSoup(res.text, "html.parser")
 
-        last_page_title = soup.find("a", {"title": "Последняя страница"})
+        # last_page_title = soup.find("a", {"title": "Последняя страница"})
 
-        if last_page_title:
-            href = last_page_title["href"]
-            pageNumber = int([s for s in href.split("/") if s != ""][-1][4:])
+        # if last_page_title:
+        # href = last_page_title["href"]
+        # pageNumber = int([s for s in href.split("/") if s != ""][-1][4:])
 
-        else:
-            raise Exception("Can't update tags due to lack of page count")
+        # else:
+        # raise Exception("Can't update tags due to lack of page count")
+
+        pageNumber = 7
 
         for i in range(1, pageNumber+1):
             print("Processing page: {}".format(i))

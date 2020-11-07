@@ -1,18 +1,148 @@
-from typing import Counter
-from nameko.rpc import rpc, RpcProxy
-from nameko.web.handlers import http
-from nltk.stem.snowball import SnowballStemmer
-from nltk.corpus import stopwords
-from pymorphy2 import analyzer
-from werkzeug.wrappers import Request
-import re
-import pymorphy2
-import nltk
 import json
+import re
 import statistics
+
+import nltk
 import numpy as np
+import pymorphy2
+from nameko.rpc import RpcProxy, rpc
+from nameko.web.handlers import http
+from nltk.corpus import stopwords
+from werkzeug.wrappers import Request
 
 nltk.download("stopwords")
+
+# ! this hand-written tags were sopposed to be a bit odd
+# tags = [
+#     {
+#         "tag": "WEB",
+#         "aliases": [
+#             "js",
+#             "javascript",
+#             "ts",
+#             "typescript",
+#             "css",
+#             "html",
+#             "es5",
+#             "es6",
+#             "asp.net",
+#             "css3",
+#             "html5",
+#             "php",
+#             "webassembly",
+#             "web",
+#             "веб",
+#             "сайт",
+#             "nodejs",
+#             "node",
+#             "react",
+#             "angular",
+#             "vue"
+#         ]
+#     },
+#     {
+#         "tag": "GD",
+#         "aliases": [
+#             "unity",
+#             "unreal",
+#             "игра",
+#             "gamedev",
+#             "игры",
+#             "unity3d",
+#             "c#",
+#             "c++"
+#         ]
+#     },
+#     {
+#         "tag": "mobile",
+#         "aliases": [
+#             "android",
+#             "ios",
+#             "kotlin",
+#             "java",
+#             "google"
+#             "мобил",
+#             "мобильный"
+#         ]
+#     },
+#     {
+#         "tag": "robot",
+#         "aliases": [
+#             "робототехника",
+#             "робот",
+#             "дрон",
+#             "ros",
+#             "arduino",
+#             "raspberry",
+#             "микроконтроллеры"
+#         ]
+#     },
+#     {
+#         "tag": "devops",
+#         "aliases": [
+#             "devops",
+#             "docker",
+#             "jenkins",
+#             "container",
+#             "контейнер",
+#             "развертка",
+#             "kubernetes",
+#             "ansible",
+#             "k8s",
+#             "слёрм",
+#             "gitlab",
+#             "linux",
+#             "ci/cd",
+#             "ci",
+#             "cd"
+#         ]
+#     },
+#     {
+#         "tag": "qa",
+#         "aliases": [
+#             "qa",
+#             "testing",
+#             "selenium",
+#             "tdd"
+#             "тест",
+#             "тестирование",
+#             "тестировщик"
+#         ]
+#     },
+#     {
+#         "tag": "ds",
+#         "aliases": [
+#             "machine",
+#             "learning",
+#             "python",
+#             "hadoop",
+#             "bigdata",
+#             "data",
+#             "neural",
+#             "нейроны",
+#             "нейроный",
+#             "анализ"
+#             "данные"
+#             "r",
+#             "mining",
+#             "искуственный"
+#         ]
+#     },
+#     {
+#         "tag": "ui",
+#         "aliases": [
+#             "интерфейсы",
+#             "интерфейс",
+#             "юзабилити",
+#             "usability",
+#             "дизайн",
+#             "ux",
+#             "ui",
+#             "interface",
+#         ]
+#
+# # ! this hand-written tags were sopposed to be a bit odd    }
+# ]
 
 
 class EventThemeAnalyzer:
@@ -48,9 +178,13 @@ class EventThemeAnalyzer:
         tags = {}
 
         for word in words:
-            loaded_tags = self.tag_das.get_tags_by_alias(word)
+            # TODO: replace this with call of tag_das
+            # selected_tags = [t["tag"] for t in tags if word in t["aliases"]]
+            selected_tags = self.tag_das.get_tags_by_alias(word)
 
-            for tag in loaded_tags:
+            print("For word: {} tags are: {}".format(word, selected_tags))
+
+            for tag in selected_tags:
                 if tag["tag"] in tags:
                     tags[tag["tag"]] += 1
                 else:
@@ -61,7 +195,7 @@ class EventThemeAnalyzer:
         for key, value in tags.items():
             tags[key] = float(value / tag_num)
 
-        print(tags)
+        print("Tags: {} ".format(tags))
 
         if len(tags) == 0:
             return []
