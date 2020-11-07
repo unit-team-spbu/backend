@@ -38,6 +38,10 @@ class Favorites:
             current_favs_list = current_favs_list["favs_list"]
             if event_id not in current_favs_list:
                 current_favs_list.append(event_id)
+                collection.update_one(
+                    {'_id': user_id},
+                    {'$set': {"favs_list": current_favs_list}}
+                )
                 return True
             return False
         else:
@@ -64,7 +68,7 @@ class Favorites:
             print(Exception)
             return False
         if event_id in current_favs_list:
-            if current_favs_list.len() > 1:
+            if len(current_favs_list) > 1:
                 '''
                 just delete one item in list
                 '''
