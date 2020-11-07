@@ -93,7 +93,7 @@ class UIS:
 
     def _update_reaction_data(self, message, event_tags=[], w=1.0, cancel=False):
         '''
-        having had the like-event:
+        having had the like-event or fav-event and so on:
             [user_id, event_id]
         changes weights due to the following principal:
             the weight of the tag equals to probability of the fact that
@@ -107,6 +107,7 @@ class UIS:
 
         where `w` is weight of the reaction
         like : w = 1.0
+        add to favs: w = 5.0
 
         and +|- depends on adding or cancelling reaction
         '''
@@ -208,6 +209,31 @@ class UIS:
         self.dispatch("make_top", data)
 
     @rpc
+    @event_handler("favorites", "fav")
+    def add_fav(self, message):
+        '''
+        message - [user_id, event_id]
+        добавили в избранное
+        '''
+        event_tags = self.event_das_rpc.get_tags_by_id(message[1])
+
+        data = self._update_reaction_data(message, event_tags, 1.0)
+        self.dispatch("make_top", data)
+
+    @rpc
+    @event_handler("favorites", "fav_cancel")
+    def cancel_fav(self, message):
+        '''
+        message - [user_id, event_id]
+        убрали из избранного
+        '''
+        event_tags = self.event_das_rpc.get_tags_by_id(message[1])
+
+        data = self._update_reaction_data(message, event_tags, 1.0, True)
+        # True means we get reaction back
+        self.dispatch("make_top", data)
+
+    @rpc
     def get_weights_by_id(self, id):
         return self._get_weights_by_id(id)
 
@@ -259,6 +285,38 @@ class UIS:
         # must be like ['tag_1', 'tag_2', ... , 'tag_n]
 
         data = self._update_reaction_data(like_message, event_tags, 1.0, True)
+        self.dispatch("make_top", data)
+
+        return Response(status=201)
+
+    @http("POST", "/got_fav")
+    def add_fav_http(self, request: Request):
+        content = request.get_data(as_text=True)
+        like_message = json.loads(content)
+
+        event = self.event_das_rpc.get_event_by_id(like_message[1])
+
+        event_tags = event['tags']
+        # this field does not exist yet
+        # must be like ['tag_1', 'tag_2', ... , 'tag_n]
+
+        data = self._update_reaction_data(like_message, event_tags, 5.0)
+        self.dispatch("make_top", data)
+
+        return Response(status=201)
+
+    @http("POST", "/cancel_fav")
+    def cancel_fav_http(self, request: Request):
+        content = request.get_data(as_text=True)
+        like_message = json.loads(content)
+
+        event = self.event_das_rpc.get_event_by_id(like_message[1])
+
+        event_tags = event['tags']
+        # this field does not exist yet
+        # must be like ['tag_1', 'tag_2', ... , 'tag_n]
+
+        data = self._update_reaction_data(like_message, event_tags, 5.0, True)
         self.dispatch("make_top", data)
 
         return Response(status=201)
