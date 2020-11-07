@@ -25,7 +25,6 @@ class RankingService:
         и записать данные в хранилище топов мероприятий для пользователей
         например с помощью вызова функции 
         self.top_das_proxy.update_top(user_id, [event_1_id, ..., event_n_id])
-
         '''
         # events_tags - dict of events and their tags like
         # {'event_id_1': ['tag_1',...,'tag_n'], ..., 'event_id_m':['tag_1',...,'tag_k']}
@@ -56,10 +55,9 @@ class RankingService:
         должен обновить топы для всех пользователей
         '''
         user_ids = self.auth_rpc.get_all_logins()
-        events_tags = self.event_das_rpc.get_event_tags()
         for user_id in user_ids:
             tags = self.uis_rpc.get_weights_by_id(user_id)
-            self.change_top_user([user_id, tags, events_tags])
+            self.change_top_user([user_id, tags])
 
     @rpc
     @event_handler("uis", "make_top")
