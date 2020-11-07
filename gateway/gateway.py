@@ -307,15 +307,18 @@ class Gateway:
 
             if reaction_type == 'like':
                 if all_data:
-                    self.likes_rpc.get_likes_by_id(user)
+                    likes = self.likes_rpc.get_likes_by_id(user)
                 else:
-                    self.likes_rpc.get() # TODO: add proper call
+                    likes = self.likes_rpc.is_event_liked(user, event_id)
+                    likes = {"value": likes}
+                return self._cors_response(Response(json.dumps(likes), 200), '*', 'DELETE, GET, POST, OPTIONS')
             elif reaction_type == 'favorite':
                 if all_data:
-                    self.favorites_rpc.get_favs_by_id(user)
+                    favs = self.favorites_rpc.get_favs_by_id(user)
                 else:
-                    self.favorites_rpc.get() # TODO: add proper call
-            return self._cors_response(Response(json.dumps({"message": "OK"}), 200), '*', 'DELETE, GET, POST, OPTIONS')
+                    favs = self.favorites_rpc.is_event_faved(user, event_id)
+                    favs = {"value": favs}
+                return self._cors_response(Response(json.dumps(favs), 200), '*', 'DELETE, GET, POST, OPTIONS')
         elif request.method == 'DELETE':
             event_id = content['event_id']
             if reaction_type == 'like':
