@@ -101,9 +101,9 @@ class EventsDAS:
 
         if len(new_events) > 0:
             collection.insert_many(new_events)
-            self.dispatch("new_events")
+            self.dispatch("new_events", "")
         elif is_new_info:
-            self.dispatch("new_events")
+            self.dispatch("new_events", "")
 
         ids = self._find_expired()
         if len(ids) > 0:
