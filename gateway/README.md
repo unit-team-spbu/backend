@@ -214,8 +214,26 @@ Content-Type: application/json
     "event_id": <event_id> - Указывается, если нужно узнать наличие лайка у конкретного мероприятия
 }
 
-Response (Сообщение об успехе, либо ошибка):
-Status: 200 - успех, 401 - пользователь не авторизован (токен не передан), 403 - неверный токен
+Response (успех, запрос на все лайки):
+Status: 200
+Content-Type: application/json
+
+[
+    event_id1, - id, лайкнутых всех событий
+    event_id2,
+    ...
+]
+
+Response (успех, конкретное мерориятие):
+Status: 200
+Content-Type: application/json
+
+{
+    "value": (true or false)
+}
+
+Response (ошибка):
+Status: 401 - пользователь не авторизован (токен не передан), 403 - неверный токен
 Content-Type: application/json
 
 {
