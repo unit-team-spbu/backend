@@ -49,7 +49,7 @@ class RankingService:
 
     @rpc
     @event_handler("event_das", "new_events")
-    def change_top_all(self):
+    def change_top_all(self, plug):
         '''
         принимает событие от event_das о добавлении новых мероприятий
         должен обновить топы для всех пользователей
