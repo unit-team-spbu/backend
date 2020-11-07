@@ -229,3 +229,61 @@ services:
       RABBIT_USER: "guest"
       RABBIT_HOST: "rabbit"
       RABBIT_PORT: "5672"
+  likes_db:
+    image: mongo
+    container_name: likes_db
+    restart: always
+  likes_gui:
+    image: mongo-express
+    container_name: likes_gui
+    restart: always
+    ports:
+      - "8087:8081"
+    depends_on:
+      - likes_db
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=likes_db
+      - ME_CONFIG_MONGODB_PORT=27017
+  likes:
+    build:
+      context: ./reaction/likes
+    depends_on:
+      - rabbit
+      - likes_db
+    ports:
+      - "8011:8000"
+    environment:
+      RABBIT_PASSWORD: "guest"
+      RABBIT_USER: "guest"
+      RABBIT_HOST: "rabbit"
+      RABBIT_PORT: "5672"
+      MONGODB_CONNECTION_URL: "mongodb://likes_db:27017"
+  favorites_db:
+    image: mongo
+    container_name: favorites_db
+    restart: always
+  favorites_gui:
+    image: mongo-express
+    container_name: favorites_gui
+    restart: always
+    ports:
+      - "8088:8081"
+    depends_on:
+      - favorites_db
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=favorites_db
+      - ME_CONFIG_MONGODB_PORT=27017
+  favorites:
+    build:
+      context: ./reaction/favorites
+    depends_on:
+      - rabbit
+      - favorites_db
+    ports:
+      - "8012:8000"
+    environment:
+      RABBIT_PASSWORD: "guest"
+      RABBIT_USER: "guest"
+      RABBIT_HOST: "rabbit"
+      RABBIT_PORT: "5672"
+      MONGODB_CONNECTION_URL: "mongodb://favorites_db:27017"
