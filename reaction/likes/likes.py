@@ -38,6 +38,10 @@ class Likes:
             current_likes_list = current_likes_list["likes_list"]
             if event_id not in current_likes_list:
                 current_likes_list.append(event_id)
+                collection.update_one(
+                    {'_id': user_id},
+                    {'$set': {"likes_list": current_likes_list}}
+                )
                 return True
             return False
         else:
@@ -64,7 +68,7 @@ class Likes:
             print(Exception)
             return False
         if event_id in current_likes_list:
-            if current_likes_list.len() > 1:
+            if len(current_likes_list) > 1:
                 '''
                 just delete one item in list
                 '''
