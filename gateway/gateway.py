@@ -24,7 +24,7 @@ class Gateway:
         content = request.get_data(as_text=True)
         return json.loads(content)
 
-    def _token_validate(self, request):
+    def _token_validate_by_body(self, request):
         """By request getting user information
         :returns:
             authorized: True if user is registered
@@ -34,6 +34,19 @@ class Gateway:
         user = -1
         try:
             token = self._get_content(request)['token']
+        except KeyError:
+            authorized = False
+        if authorized:
+            user = self.auth_rpc.check_jwt(token)
+        return authorized, user
+
+    def _token_validate_by_params(self, request):
+        """Same as _token_validate_by_body but for GET request"""
+        authorized = True
+        # Check if there's no token provided
+        user = -1
+        try:
+            token = request.args['token']
         except KeyError:
             authorized = False
         if authorized:
@@ -112,7 +125,7 @@ class Gateway:
     @http('GET,OPTIONS', '/feed/')
     def feed_handler(self, request):
         """Getting top events for authorized user
-        request body:
+        request parameters:
             {
                 "token": <token>, (optional)
                 "tags": [..], (optional)
@@ -149,7 +162,7 @@ class Gateway:
         if request.method == 'OPTIONS':
             return self._cors_response(Response(), '*', 'GET, OPTIONS')
 
-        authorized, user = self._token_validate(request)
+        authorized, user = self._token_validate_by_params(request)
         if authorized:
             # if token is invalid
             if not user:
@@ -157,7 +170,7 @@ class Gateway:
 
             # if there's no tags provided
             try:
-                tags = self._get_content(request)['tags']
+                tags = json.loads(request.args['tags'])
             except KeyError:
                 tags = []
 
@@ -177,7 +190,7 @@ class Gateway:
     @http('GET,OPTIONS', '/feed/<string:event_id>/')
     def get_event_handler(self, request, event_id):
         """Getting info about specific event
-        request body:
+        request parameters:
             {
                 "token": <token>, (optional)
             }
@@ -200,7 +213,7 @@ class Gateway:
         if request.method == 'OPTIONS':
             return self._cors_response(Response(), '*', 'GET, OPTIONS')
 
-        authorized, user = self._token_validate(request)
+        authorized, user = self._token_validate_by_params(request)
         if authorized and not user:
             return self._cors_response(Response(json.dumps({"message": "Invalid token"}), status=403), '*', 'GET, OPTIONS')
         
@@ -227,7 +240,10 @@ class Gateway:
         if request.method == 'OPTIONS':
             return self._cors_response(Response(), '*', 'POST, PUT, GET, OPTIONS')
 
-        authorized, user = self._token_validate(request)
+        if request.method == 'GET':
+            authorized, user = self._token_validate_by_params(request)
+        else:
+            authorized, user = self._token_validate_by_body(request)
         if not authorized:
             return self._cors_response(Response(json.dumps({"message": "User is not authorized"}), 401), '*', 'POST, PUT, GET, OPTIONS')
         elif not user:
@@ -280,17 +296,19 @@ class Gateway:
         if request.method == 'OPTIONS':
             return self._cors_response(Response(), '*', 'DELETE, GET, POST, OPTIONS')
 
-        authorized, user = self._token_validate(request)
+        if request.method == 'GET':
+            authorized, user = self._token_validate_by_params(request)
+        else:
+            authorized, user = self._token_validate_by_body(request)
+            content = self._get_content(request)
+
         if not authorized:
             return self._cors_response(Response(json.dumps({"message": "User is not authorized"}), 401), '*', 'DELETE, GET, POST, OPTIONS')
         elif not user:
             return self._cors_response(Response(json.dumps({"message": "Invalid token"}), 403), '*', 'DELETE, GET, POST, OPTIONS')
         
-        content = self._get_content(request)
-
         if request.method == 'POST':
             event_id = content['event_id']
-
             if reaction_type == 'like':
                 self.likes_rpc.new_like([user, event_id])
             elif reaction_type == 'favorite':
@@ -301,7 +319,7 @@ class Gateway:
             # Whether we need all user reactions or for specific event
             all_data = True
             try:
-                event_id = content['event_id']
+                event_id = request.args['event_id']
             except KeyError:
                 all_data = False
 
