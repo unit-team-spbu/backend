@@ -51,9 +51,9 @@ Content-Type: application/json
 В теле всех остальных запросов _должен присутствовать JWT токен_, если это зарегистрированный пользователь
 - Получение ленты событий:
 ```
-POST http://localhost:8000/feed HTTP/1.1
-Content-Type: application/json
+GET http://localhost:8000/feed?token=<token>&tags=["tag1","tag2","tag3"] HTTP/1.1
 
+Query parameters (GET запросы не могут иметь тела, поэтому параметры должны быть переданы в строке запроса в формате, указанном выше)
 {
     "token": <token>, (Может быть не указан, если пользователь не авторизован)
     "tags": [..] - Теги для фильтрации (могут быть не указаны)
@@ -95,9 +95,9 @@ Content-Type: application/json
 ```
 - Получение определенного события:
 ```
-GET http://localhost:8000/feed/<string:event_id> HTTP/1.1
-Content-Type: application/json
+GET http://localhost:8000/feed/<string:event_id>?token=<token> HTTP/1.1
 
+Query parameters:
 {
     "token": <token> (Может быть не указан, если пользователь не авторизован)
 }
@@ -126,9 +126,9 @@ Content-Type: application/json
 ```
 - Получение интересов пользователя
 ```
-GET http://localhost:8000/profile/interests HTTP/1.1
-Content-Type: application/json
+GET http://localhost:8000/profile/interests?token=<token> HTTP/1.1
 
+Query parameters:
 {
     "token": <token>
 }
@@ -206,9 +206,10 @@ Content-Type: application/json
 ```
 - Реакционное событие (получение всех лайков/наличие лайка у мероприятия):
 ```
-GET http://localhost:8000/reaction/like HTTP/1.1
+GET http://localhost:8000/reaction/like?token=<token>&event_id=<event_id> HTTP/1.1
 Content-Type: application/json
 
+Query parameters:
 {
     "token": <token>,
     "event_id": <event_id> - Указывается, если нужно узнать наличие лайка у конкретного мероприятия
