@@ -1,0 +1,58 @@
+@host = localhost
+@gateway_port = 8000
+
+###
+// Лайк мероприятию c тегами вебинар, онлайн, платно
+@reaction_type = like
+POST http://{{host}}:{{gateway_port}}/reaction/{{reaction_type}} HTTP/1.1
+Content-Type: application/json
+
+{
+    "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJsb2dpbiI6InRlc3QifQ.XcxiUanQhUODJF3V12K6WLW8XHCg7zynpOZ47cmkIl0",
+    "event_id": "5fa6d04dee90e3f39246e564"
+}
+
+###
+// Посмотрим на изменения после лайка
+GET http://{{host}}:{{gateway_port}}/feed?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJsb2dpbiI6InRlc3QifQ.XcxiUanQhUODJF3V12K6WLW8XHCg7zynpOZ47cmkIl0 HTTP/1.1
+
+###
+// Добавим это же мероприятие в избранное
+@reaction_type = favorite
+POST http://{{host}}:{{gateway_port}}/reaction/{{reaction_type}} HTTP/1.1
+Content-Type: application/json
+
+{
+    "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJsb2dpbiI6InRlc3QifQ.XcxiUanQhUODJF3V12K6WLW8XHCg7zynpOZ47cmkIl0",
+    "event_id": "5fa6d04dee90e3f39246e564"
+}
+
+###
+// Посмотрим на изменения после добавление в избранное
+GET http://{{host}}:{{gateway_port}}/feed?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJsb2dpbiI6InRlc3QifQ.XcxiUanQhUODJF3V12K6WLW8XHCg7zynpOZ47cmkIl0 HTTP/1.1
+
+###
+// Отменим добавление в избранное
+@reaction_type = favorite
+DELETE http://{{host}}:{{gateway_port}}/reaction/{{reaction_type}} HTTP/1.1
+Content-Type: application/json
+
+{
+    "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJsb2dpbiI6InRlc3QifQ.XcxiUanQhUODJF3V12K6WLW8XHCg7zynpOZ47cmkIl0",
+    "event_id": "5fa6d04dee90e3f39246e564"
+}
+
+###
+// Посмотрим на новый топ
+GET http://{{host}}:{{gateway_port}}/feed?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJsb2dpbiI6InRlc3QifQ.XcxiUanQhUODJF3V12K6WLW8XHCg7zynpOZ47cmkIl0 HTTP/1.1
+
+###
+// Отменим добавление в избранное
+@reaction_type = like
+DELETE http://{{host}}:{{gateway_port}}/reaction/{{reaction_type}} HTTP/1.1
+Content-Type: application/json
+
+{
+    "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJsb2dpbiI6InRlc3QifQ.XcxiUanQhUODJF3V12K6WLW8XHCg7zynpOZ47cmkIl0",
+    "event_id": "5fa6d04dee90e3f39246e564"
+}

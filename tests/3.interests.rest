@@ -1,0 +1,58 @@
+@host = localhost
+@gateway_port = 8000
+@top_das_port = 8005
+
+###
+// Пока топ мероприятий пуст (внутренний микросервис)
+GET http://{{host}}:{{top_das_port}}/top HTTP/1.1
+Content-Type: application/json
+
+{
+    "user": "test"
+}
+
+###
+// Добавление интересов нового пользователя
+POST http://{{host}}:{{gateway_port}}/profile/interests HTTP/1.1
+Content-Type: application/json
+
+{
+    "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJsb2dpbiI6InRlc3QifQ.XcxiUanQhUODJF3V12K6WLW8XHCg7zynpOZ47cmkIl0",
+    "interests": [
+        "конференция",
+        "вебинар",
+        "стажировка",
+        "C#"
+    ]
+}
+
+###
+// Получим интересы пользователя
+GET http://{{host}}:{{gateway_port}}/profile/interests?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJsb2dpbiI6InRlc3QifQ.XcxiUanQhUODJF3V12K6WLW8XHCg7zynpOZ47cmkIl0 HTTP/1.1
+
+###
+// Изменим интересы
+PUT http://{{host}}:{{gateway_port}}/profile/interests HTTP/1.1
+Content-Type: application/json
+
+{
+    "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJsb2dpbiI6InRlc3QifQ.XcxiUanQhUODJF3V12K6WLW8XHCg7zynpOZ47cmkIl0",
+    "interests": [
+        "вебинар",
+        "стажировка",
+        "конференция"
+    ]
+}
+
+###
+// Проверим изменения
+GET http://{{host}}:{{gateway_port}}/profile/interests?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJsb2dpbiI6InRlc3QifQ.XcxiUanQhUODJF3V12K6WLW8XHCg7zynpOZ47cmkIl0 HTTP/1.1
+
+###
+// Топ обновился
+GET http://{{host}}:{{top_das_port}}/top HTTP/1.1
+Content-Type: application/json
+
+{
+    "user": "test"
+}

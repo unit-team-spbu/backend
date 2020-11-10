@@ -1,0 +1,32 @@
+@host = localhost
+@gateway_port = 8000
+
+###
+// Проверка регистрации
+POST http://{{host}}:{{gateway_port}}/register HTTP/1.1
+Content-Type: application/json
+
+{
+    "login": "test",
+    "password": "test"
+}
+
+###
+// Проверка входа
+POST http://{{host}}:{{gateway_port}}/login HTTP/1.1
+Content-Type: application/json
+
+{
+    "login": "test",
+    "password": "test"
+}
+
+###
+// Вход с неправильными данными
+POST http://{{host}}:{{gateway_port}}/login HTTP/1.1
+Content-Type: application/json
+
+{
+    "login": "test",
+    "password": "tet"
+}
