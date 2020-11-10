@@ -253,7 +253,7 @@ class Gateway:
             interests = self.uis_rpc.get_weights_by_id(user)
             clean_interests = list()
             for item in interests.items():
-                if item[1]:
+                if item[1] > 0:
                     clean_interests.append(item[0])
             return self._cors_response(Response(json.dumps(clean_interests, ensure_ascii=False), 200), '*', 'POST, PUT, GET, OPTIONS')
         
@@ -317,15 +317,17 @@ class Gateway:
             return self._cors_response(Response(json.dumps({"message": "Reaction committed"}), 200), '*', 'DELETE, GET, POST, OPTIONS')
         elif request.method == 'GET':
             # Whether we need all user reactions or for specific event
-            all_data = True
+            all_data = False
             try:
                 event_id = request.args['event_id']
             except KeyError:
-                all_data = False
+                all_data = True
 
             if reaction_type == 'like':
                 if all_data:
                     likes = self.likes_rpc.get_likes_by_id(user)
+                    if likes is None:
+                        likes = []
                 else:
                     likes = self.likes_rpc.is_event_liked(user, event_id)
                     likes = {"value": likes}
@@ -333,6 +335,8 @@ class Gateway:
             elif reaction_type == 'favorite':
                 if all_data:
                     favs = self.favorites_rpc.get_favs_by_id(user)
+                    if favs is None:
+                        favs = []
                 else:
                     favs = self.favorites_rpc.is_event_faved(user, event_id)
                     favs = {"value": favs}
