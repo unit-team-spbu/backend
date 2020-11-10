@@ -121,8 +121,8 @@ class Gateway:
             return self._cors_response(Response(json.dumps({"message": "Wrong credentials"}), status=400), '*', 'POST, OPTIONS')
         return self._cors_response(Response(json.dumps({"token": token}), 202), '*', 'POST, OPTIONS')
 
-    @http('GET,OPTIONS', '/feed')
-    @http('GET,OPTIONS', '/feed/')
+    @http('POST,OPTIONS', '/feed')
+    @http('POST,OPTIONS', '/feed/')
     def feed_handler(self, request):
         """Getting top events for authorized user
         request parameters:
@@ -160,17 +160,17 @@ class Gateway:
             }
         """
         if request.method == 'OPTIONS':
-            return self._cors_response(Response(), '*', 'GET, OPTIONS')
+            return self._cors_response(Response(), '*', 'POST, OPTIONS')
 
-        authorized, user = self._token_validate_by_params(request)
+        authorized, user = self._token_validate_by_body(request)
         if authorized:
             # if token is invalid
             if not user:
-                return self._cors_response(Response(json.dumps({"message": "Invalid token"}), status=403), '*', 'GET, OPTIONS')
+                return self._cors_response(Response(json.dumps({"message": "Invalid token"}), status=403), '*', 'POST, OPTIONS')
 
             # if there's no tags provided
             try:
-                tags = json.loads(request.args['tags'])
+                tags = self._get_content(request)['tags']
             except KeyError:
                 tags = []
 
