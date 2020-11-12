@@ -104,11 +104,9 @@ class UIS:
                         new_weight_of_this_tag)/(count +|- w)
         ++|--count
         event_tags - list of tags related to liked event
-
         where `w` is weight of the reaction
         like : w = 1.0
         add to favs: w = 5.0
-
         and +|- depends on adding or cancelling reaction
         '''
         collection = self.db["interests"]
@@ -127,9 +125,8 @@ class UIS:
             '''
             for event_tag in event_tags:
                 try:
-                    total_weight = user_tags[event_tag]
-                    total_weight = (total_weight*count - w)/(count-w)
-                    user_tags[event_tag] = total_weight
+                    user_tags[event_tag] = (
+                        user_tags[event_tag]*count - w)/(count-w)
                 except Exception:
                     print(Exception, ' - !smth weird!')
                     user_tags[event_tag] = 0.0
@@ -178,7 +175,7 @@ class UIS:
     @rpc
     def create_new_q(self, questionnaire):
         '''
-            questionnaire - 
+            questionnaire - [user_id, [event_1_id, ..., event_n_id]]
         '''
         data = self._add_questonnaire_data(questionnaire)
         self.dispatch("make_top", data)
@@ -217,7 +214,7 @@ class UIS:
         '''
         event_tags = self.event_das_rpc.get_tags_by_id(message[1])
 
-        data = self._update_reaction_data(message, event_tags, 1.0)
+        data = self._update_reaction_data(message, event_tags, 5.0)
         self.dispatch("make_top", data)
 
     @rpc
@@ -229,7 +226,7 @@ class UIS:
         '''
         event_tags = self.event_das_rpc.get_tags_by_id(message[1])
 
-        data = self._update_reaction_data(message, event_tags, 1.0, True)
+        data = self._update_reaction_data(message, event_tags, 5.0, True)
         # True means we get reaction back
         self.dispatch("make_top", data)
 
@@ -292,15 +289,15 @@ class UIS:
     @http("POST", "/got_fav")
     def add_fav_http(self, request: Request):
         content = request.get_data(as_text=True)
-        like_message = json.loads(content)
+        fav_message = json.loads(content)
 
-        event = self.event_das_rpc.get_event_by_id(like_message[1])
+        event = self.event_das_rpc.get_event_by_id(fav_message[1])
 
         event_tags = event['tags']
         # this field does not exist yet
         # must be like ['tag_1', 'tag_2', ... , 'tag_n]
 
-        data = self._update_reaction_data(like_message, event_tags, 5.0)
+        data = self._update_reaction_data(fav_message, event_tags, 5.0)
         self.dispatch("make_top", data)
 
         return Response(status=201)
@@ -308,15 +305,15 @@ class UIS:
     @http("POST", "/cancel_fav")
     def cancel_fav_http(self, request: Request):
         content = request.get_data(as_text=True)
-        like_message = json.loads(content)
+        fav_message = json.loads(content)
 
-        event = self.event_das_rpc.get_event_by_id(like_message[1])
+        event = self.event_das_rpc.get_event_by_id(fav_message[1])
 
         event_tags = event['tags']
         # this field does not exist yet
         # must be like ['tag_1', 'tag_2', ... , 'tag_n]
 
-        data = self._update_reaction_data(like_message, event_tags, 5.0, True)
+        data = self._update_reaction_data(fav_message, event_tags, 5.0, True)
         self.dispatch("make_top", data)
 
         return Response(status=201)
