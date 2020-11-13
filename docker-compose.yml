@@ -5,6 +5,35 @@ services:
     image: rabbitmq:3-management
     ports:
       - "15672:15672"
+  logger_db:
+    image: mongo
+    container_name: logger_db
+    restart: always
+  logger_gui:
+    image: mongo-express
+    container_name: logger_gui
+    restart: always
+    ports:
+      - "8089:8081"
+    depends_on:
+      - logger_db
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=logger_db
+      - ME_CONFIG_MONGODB_PORT=27017
+  logger:
+    build:
+      context: ./logger
+    depends_on:
+      - rabbit
+      - logger_db
+    ports:
+      - "8013:8000"
+    environment:
+      RABBIT_PASSWORD: "guest"
+      RABBIT_USER: "guest"
+      RABBIT_HOST: "rabbit"
+      RABBIT_PORT: "5672"
+      MONGODB_CONNECTION_URL: "mongodb://logger_db:27017"
   rec:
     build:
       context: ./rec
