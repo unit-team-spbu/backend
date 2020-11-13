@@ -37,7 +37,7 @@ class Logger:
          "state": state, "message": message}
         self._save_log(log)
 
-    @http('GET', '/logs/full')
+    @http('GET', '/full_logs')
     def get_logs_handler(self, request):
         cursor = self.db["logs"].find(
             {}, {"_id": 0,})
@@ -46,7 +46,7 @@ class Logger:
             logs.append(row)
         return 200, json.dumps(logs)
 
-    @http('GET', '/logs/short')
+    @http('GET', '/short_logs')
     def get_logs_handler(self, request):
         cursor = self.db["logs"].find(
             {}, {"_id": 0, "arguments": 0})
