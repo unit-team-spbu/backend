@@ -1,0 +1,10 @@
+@host = localhost
+@event_das_port = 8003
+@raw_events_collector_port = 8001
+
+###
+// Запрос обновления мероприятий
+GET http://{{host}}:{{raw_events_collector_port}}/events HTTP/1.1
+
+// Получение сохраненных в БД мероприятий
+GET http://{{host}}:{{event_das_port}}/allevents HTTP/1.1
