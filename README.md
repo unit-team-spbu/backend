@@ -16,4 +16,5 @@
 | Auth                       | `auth`      | 8010      |             |
 | Likes                      | `likes`     | 8011/8087 |             |
 | Favorites                  | `favorites` | 8012/8088 |             |
+| Logger                     | `logger`    | 8013/8089 |             |
 | Gateway                    | `gateway`   | 8000      |             |
