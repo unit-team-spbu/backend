@@ -1,3 +1,0 @@
-nameko==2.13.0
-nameko-mongodb==1.1.1
-Werkzeug==1.0.1

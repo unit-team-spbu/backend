@@ -1,0 +1,51 @@
+[submodule "gateway"]
+	path = gateway
+	url = git@github.com:unit-team-spbu/gateway.git
+[submodule "uis"]
+	path = uis
+	url = git@github.com:unit-team-spbu/uis.git
+[submodule "rec"]
+	path = rec
+	url = git@github.com:unit-team-spbu/rec.git
+[submodule "reaction-likes"]
+	path = reaction-likes
+	url = git@github.com:unit-team-spbu/reaction-likes.git
+[submodule "reaction-favorites"]
+	path = reaction-favorites
+	url = git@github.com:unit-team-spbu/reaction-favorites.git
+[submodule "ranking"]
+	path = ranking
+	url = git@github.com:unit-team-spbu/ranking.git
+[submodule "preh"]
+	path = preh
+	url = git@github.com:unit-team-spbu/preh.git
+[submodule "crawler-it_events_crawler"]
+	path = crawler-it_events_crawler
+	url = git@github.com:unit-team-spbu/crawler-it_events_crawler.git
+[submodule "filter"]
+	path = filter
+	url = git@github.com:unit-team-spbu/filter.git
+[submodule "eta"]
+	path = eta
+	url = git@github.com:unit-team-spbu/eta.git
+[submodule "das-top_das"]
+	path = das-top_das
+	url = git@github.com:unit-team-spbu/das-top_das.git
+[submodule "das-event_das"]
+	path = das-event_das
+	url = git@github.com:unit-team-spbu/das-event_das.git
+[submodule "crawler-softline_crawler"]
+	path = crawler-softline_crawler
+	url = git@github.com:unit-team-spbu/crawler-softline_crawler.git
+[submodule "crawler-it_world_crawler"]
+	path = crawler-it_world_crawler
+	url = git@github.com:unit-team-spbu/crawler-it_world_crawler.git
+[submodule "auth"]
+	path = auth
+	url = git@github.com:unit-team-spbu/auth.git
+[submodule "mocked-gateway"]
+	path = mocked-gateway
+	url = git@github.com:unit-team-spbu/mocked-gateway.git
+[submodule "das-tag_das"]
+	path = das-tag_das
+	url = git@github.com:unit-team-spbu/das-tag_das.git
