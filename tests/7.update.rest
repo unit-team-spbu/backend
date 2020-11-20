@@ -1,0 +1,53 @@
+@host = localhost
+@gateway_port = 8000
+@event_das_port = 8003
+
+###
+// Добавим вручную мероприятие (заведомо самое раннее)
+POST http://{{host}}:{{event_das_port}}/events
+Content-Type: application/json
+
+[
+     {
+        "title": "Стажировка в крупной IT компании",
+        "location": "Moscow",
+        "startDate": "10.11.2019",
+        "endDate": "13.11.2020",
+        "description": "Описание мероприятия",
+        "meta": {
+            "it_world_crawler": "it_world_id"
+        },
+        "tags": [
+            "стажировка"
+        ]
+    }
+]
+
+###
+// Посмотрим на новый топ (новые события отражаются в топе пользователя)
+GET http://{{host}}:{{gateway_port}}/feed?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJsb2dpbiI6InRlc3QifQ.XcxiUanQhUODJF3V12K6WLW8XHCg7zynpOZ47cmkIl0 HTTP/1.1
+
+###
+// Добавим вручную мероприятие (заведомо устаревшее)
+POST http://{{host}}:{{event_das_port}}/events
+Content-Type: application/json
+
+[
+     {
+        "title": "Стажировка в крупной IT компании",
+        "location": "Saint-Petersburg",
+        "startDate": "10.11.2019",
+        "endDate": "13.11.2019",
+        "description": "Описание мероприятия",
+        "meta": {
+            "it_world_crawler": "it_world_id"
+        },
+        "tags": [
+            "стажировка"
+        ]
+    }
+]
+
+###
+// Убедимся, что старые события (и только что добавленное) были удалены
+GET http://{{host}}:{{event_das_port}}/allevents HTTP/1.1

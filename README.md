@@ -16,4 +16,20 @@
 | Auth                       | `auth`      | 8010      |             |
 | Likes                      | `likes`     | 8011/8087 |             |
 | Favorites                  | `favorites` | 8012/8088 |             |
+| Logger                     | `logger`    | 8013/8089 |             |
 | Gateway                    | `gateway`   | 8000      |             |
+
+## How to push changes
+После изменения кода микросервис нужно поместить в DockerHub. Для этого нужно выполнить:
+- Если образ уже создан
+```
+sudo docker tag <image_name> maxkuznets0v/aggregator:<service_name>
+```
+- Если образа нет
+```
+sudo docker build -t maxkuznets0v/aggregator:<service_name> .
+```
+И запушить образ в репозиторий:
+```
+sudo docker push maxkuznets0v/aggregator:<service_name>
+```
