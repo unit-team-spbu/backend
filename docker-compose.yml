@@ -46,7 +46,7 @@ services:
       - ME_CONFIG_MONGODB_PORT=27017
   tag_das:
     build:
-      context: ./das/tag_das
+      context: ./das-tag_das
     depends_on:
       - rabbit
       - tag_das_db
@@ -87,7 +87,7 @@ services:
       - ME_CONFIG_MONGODB_PORT=27017
   event_das:
     build:
-      context: ./das/event_das/
+      context: ./das-event_das/
     depends_on:
       - rabbit
       - event_das_db
@@ -101,7 +101,7 @@ services:
       MONGODB_CONNECTION_URL: "mongodb://event_das_db:27017"
   it_events_crawler:
     build:
-      context: ./crawler/it_events_crawler
+      context: ./crawler-it_events_crawler
     depends_on:
       - rabbit
     environment:
@@ -111,7 +111,7 @@ services:
       RABBIT_PORT: "5672"
   softline_crawler:
     build:
-      context: ./crawler/softline_crawler
+      context: ./crawler-softline_crawler
     depends_on:
       - rabbit
     environment:
@@ -121,7 +121,7 @@ services:
       RABBIT_PORT: "5672"
   it_world_crawler:
     build:
-      context: ./crawler/it_world_crawler
+      context: ./crawler-it_world_crawler
     depends_on:
       - rabbit
     environment:
@@ -135,7 +135,7 @@ services:
     hostname: top_das_redis
   top_das:
     build:
-      context: ./das/top_das
+      context: ./das-top_das
     depends_on:
       - rabbit
     ports:
@@ -246,7 +246,7 @@ services:
       - ME_CONFIG_MONGODB_PORT=27017
   likes:
     build:
-      context: ./reaction/likes
+      context: ./reaction-likes
     depends_on:
       - rabbit
       - likes_db
@@ -275,7 +275,7 @@ services:
       - ME_CONFIG_MONGODB_PORT=27017
   favorites:
     build:
-      context: ./reaction/favorites
+      context: ./reaction-favorites
     depends_on:
       - rabbit
       - favorites_db
