@@ -46,3 +46,6 @@
 [submodule "mocked-gateway"]
 	path = mocked-gateway
 	url = git@github.com:unit-team-spbu/mocked-gateway.git
+[submodule "das-tag_das"]
+	path = das-tag_das
+	url = git@github.com:unit-team-spbu/das-tag_das.git
